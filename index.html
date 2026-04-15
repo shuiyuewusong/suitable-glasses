@@ -23,7 +23,8 @@
       --text: #1e293b;
       --text-muted: #64748b;
       --text-light: #94a3b8;
-      --tap-size: 44px; /* minimum touch target */
+      --tap-size: 44px;
+      --item-h: 40px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,7 +39,6 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    /* ─── Remove number spinners globally ─── */
     input[type="number"] { -moz-appearance: textfield; }
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -62,7 +62,6 @@
       flex-direction: column;
       gap: 14px;
     }
-
     .card {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -70,7 +69,6 @@
       padding: 20px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.04);
     }
-
     .card-title {
       font-size: 11px;
       font-weight: 700;
@@ -95,10 +93,8 @@
     .formula-eqs { margin: 6px 0 4px; display: flex; flex-wrap: wrap; gap: 6px 20px; }
     .formula-eq {
       font-family: 'Courier New', 'Consolas', monospace;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--primary);
-      letter-spacing: -0.2px;
+      font-size: 14px; font-weight: 700;
+      color: var(--primary); letter-spacing: -0.2px;
     }
     .formula-content p { font-size: 12px; color: var(--text-muted); }
 
@@ -106,9 +102,7 @@
     .pd-row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
     .pd-display {
       font-size: 52px; font-weight: 800; color: var(--primary);
-      line-height: 1;
-      width: 168px;
-      flex-shrink: 0;
+      line-height: 1; width: 168px; flex-shrink: 0;
       font-variant-numeric: tabular-nums;
     }
     .pd-display span { font-size: 18px; font-weight: 400; color: var(--text-muted); }
@@ -117,12 +111,10 @@
     /* ─── Sliders ─── */
     input[type="range"] {
       -webkit-appearance: none;
-      width: 100%;
-      height: 6px;
+      width: 100%; height: 6px;
       border-radius: 3px;
       background: var(--border);
-      outline: none;
-      cursor: pointer;
+      outline: none; cursor: pointer;
       touch-action: pan-x;
     }
     input[type="range"]::-webkit-slider-thumb {
@@ -140,7 +132,6 @@
       display: flex; justify-content: space-between;
       font-size: 11px; color: var(--text-light); margin-top: 5px;
     }
-
     .pd-manual { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
     .pd-manual label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
 
@@ -148,14 +139,10 @@
       padding: 8px 10px;
       border: 2px solid var(--border);
       border-radius: 8px;
-      font-size: 16px;         /* 16px prevents iOS auto-zoom */
-      text-align: center;
-      outline: none;
-      width: 84px;
-      height: var(--tap-size);
+      font-size: 16px; text-align: center;
+      outline: none; width: 84px; height: var(--tap-size);
       transition: border-color 0.15s;
-      color: var(--text);
-      font-weight: 700;
+      color: var(--text); font-weight: 700;
       -webkit-tap-highlight-color: transparent;
     }
     .number-input:focus { border-color: var(--primary); }
@@ -166,82 +153,146 @@
       grid-template-columns: 1fr 1fr;
       gap: 20px 28px;
     }
-
     .filter-label {
       font-size: 12px; font-weight: 600; color: var(--text-muted);
-      margin-bottom: 8px; display: block;
+      margin-bottom: 10px; display: block;
     }
 
     /* ─── Decentration Slider ─── */
     .dec-slider-row { display: flex; align-items: center; gap: 12px; }
     .dec-slider-wrap { flex: 1; min-width: 0; }
     .dec-value-badge {
-      min-width: 68px;
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 700;
-      text-align: center;
-      transition: background 0.2s, color 0.2s;
+      min-width: 68px; padding: 6px 10px;
+      border-radius: 8px; font-size: 14px; font-weight: 700;
+      text-align: center; transition: background 0.2s, color 0.2s;
       flex-shrink: 0;
     }
     .dec-hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
     .dec-status {
-      display: inline-block;
-      margin-top: 8px;
-      padding: 5px 16px;
-      border-radius: 20px;
-      font-size: 18px;
-      font-weight: 800;
-      letter-spacing: 1px;
+      display: inline-block; margin-top: 8px;
+      padding: 5px 16px; border-radius: 20px;
+      font-size: 18px; font-weight: 800; letter-spacing: 1px;
       transition: background 0.25s, color 0.25s;
     }
 
-    /* ─── Range / Exact inputs ─── */
-    .lens-bridge-wrap { display: flex; flex-direction: column; gap: 8px; }
-
-    .range-row {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 13px; color: var(--text-muted);
+    /* ════════════════════════════════
+       Wheel Picker
+    ════════════════════════════════ */
+    .wheel-range-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .range-input {
-      width: 60px;
-      height: var(--tap-size);
-      padding: 0 8px;
+
+    /* Outer container: clips the scroll and shows gradient */
+    .wheel-wrap {
+      position: relative;
+      width: 64px;
+      height: calc(var(--item-h) * 3);   /* 3 visible rows */
+      overflow: hidden;
       border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-size: 16px;         /* prevents iOS zoom */
-      text-align: center;
-      outline: none; font-weight: 600; color: var(--text);
-      transition: border-color 0.15s;
-      -webkit-tap-highlight-color: transparent;
+      border-radius: 10px;
+      background: var(--card-bg);
+      flex-shrink: 0;
+      cursor: ns-resize;
     }
-    .range-input:focus { border-color: var(--primary); }
 
+    /* Scrollable list */
+    .wp-items {
+      height: 100%;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      overscroll-behavior: contain;
+    }
+    .wp-items::-webkit-scrollbar { display: none; }
+
+    /* Padding sentinel items for centering first/last real item */
+    .wp-pad { height: var(--item-h); flex-shrink: 0; }
+
+    /* Each value row */
+    .wp-item {
+      height: var(--item-h);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      font-weight: 600;
+      color: #c8d3e0;
+      scroll-snap-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.12s, font-size 0.12s, font-weight 0.12s;
+    }
+    .wp-item.selected {
+      color: var(--primary);
+      font-size: 19px;
+      font-weight: 800;
+    }
+
+    /* Top & bottom gradient fades */
+    .wheel-wrap::before,
+    .wheel-wrap::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      height: var(--item-h);
+      pointer-events: none;
+      z-index: 3;
+    }
+    .wheel-wrap::before {
+      top: 0;
+      background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+    }
+    .wheel-wrap::after {
+      bottom: 0;
+      background: linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+    }
+
+    /* Center selection indicator lines */
+    .wp-indicator {
+      position: absolute;
+      top: var(--item-h);
+      left: 0; right: 0;
+      height: var(--item-h);
+      border-top: 1.5px solid var(--primary);
+      border-bottom: 1.5px solid var(--primary);
+      pointer-events: none;
+      z-index: 2;
+      opacity: 0.35;
+    }
+
+    /* Range label / unit text */
+    .wheel-sep {
+      font-size: 15px; font-weight: 500; color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .wheel-unit {
+      font-size: 13px; font-weight: 600; color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    /* ─── Exact input row ─── */
+    .lens-bridge-wrap { display: flex; flex-direction: column; gap: 10px; }
     .exact-row {
       display: flex; align-items: center; gap: 6px;
       font-size: 12px; color: var(--text-muted);
     }
     .exact-input {
-      width: 66px;
-      height: var(--tap-size);
-      padding: 0 8px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-size: 16px;         /* prevents iOS zoom */
-      text-align: center;
+      width: 66px; height: var(--tap-size); padding: 0 8px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 16px; text-align: center;
       outline: none; font-weight: 600; color: var(--text);
       transition: border-color 0.15s;
       -webkit-tap-highlight-color: transparent;
     }
     .exact-input:focus  { border-color: var(--primary); }
     .exact-input.active { border-color: var(--primary); background: var(--primary-light); }
-
     .exact-clear {
       font-size: 12px; color: var(--primary);
       cursor: pointer; text-decoration: underline;
-      display: none;
-      padding: 4px 2px;         /* larger tap area */
+      display: none; padding: 4px 2px;
       -webkit-tap-highlight-color: transparent;
     }
     .exact-clear.visible { display: inline; }
@@ -258,10 +309,7 @@
     .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); }
     .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
-    .sort-bar {
-      display: flex; align-items: center; gap: 6px;
-      margin-bottom: 14px;
-    }
+    .sort-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 14px; }
     .sort-bar-label {
       font-size: 11px; color: var(--text-muted); font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.5px;
@@ -274,15 +322,13 @@
     }
     .sort-btn-wrap::-webkit-scrollbar { display: none; }
     .sort-btn {
-      padding: 6px 12px;
-      border: 1.5px solid var(--border);
-      border-radius: 6px;
+      padding: 6px 12px; height: 34px;
+      border: 1.5px solid var(--border); border-radius: 6px;
       font-size: 12px; font-weight: 500;
       cursor: pointer; background: white; color: var(--text-muted);
-      transition: all 0.15s;
-      white-space: nowrap; flex-shrink: 0;
+      transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+      display: flex; align-items: center;
       -webkit-tap-highlight-color: transparent;
-      height: 34px; display: flex; align-items: center;
     }
     .sort-btn:hover { border-color: var(--primary); color: var(--primary); }
     .sort-btn.active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); font-weight: 600; }
@@ -294,47 +340,32 @@
       -webkit-overflow-scrolling: touch;
     }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
-
     thead th {
       padding: 10px 14px; text-align: left;
       font-size: 11px; font-weight: 700; color: var(--text-muted);
       background: #f8fafc; border-bottom: 1px solid var(--border);
       white-space: nowrap; text-transform: uppercase; letter-spacing: 0.4px;
-      position: sticky; top: 0;
     }
     tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.1s; }
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: #f8fafc; }
     tbody tr.top-row { background: #f0fdf4; }
     tbody tr.top-row:hover { background: #dcfce7; }
-
     td { padding: 10px 14px; white-space: nowrap; }
 
-    .rank {
-      font-size: 11px; color: var(--text-light);
-      font-variant-numeric: tabular-nums;
-      width: 28px; display: inline-block; text-align: right;
-    }
+    .rank { font-size: 11px; color: var(--text-light); font-variant-numeric: tabular-nums; width: 28px; display: inline-block; text-align: right; }
     .rank.top { font-weight: 700; color: var(--excellent); }
 
-    .badge {
-      display: inline-flex; align-items: center;
-      padding: 3px 9px; border-radius: 12px;
-      font-size: 11px; font-weight: 600;
-    }
+    .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; }
     .badge-excellent  { background: var(--excellent-bg);  color: var(--excellent); }
     .badge-good       { background: var(--good-bg);       color: var(--good); }
     .badge-acceptable { background: var(--acceptable-bg); color: var(--acceptable); }
     .badge-poor       { background: var(--poor-bg);       color: var(--poor); }
 
     .d-cell { display: flex; align-items: center; gap: 8px; }
-    .d-bar-track {
-      width: 52px; height: 5px; background: var(--border);
-      border-radius: 3px; overflow: hidden; flex-shrink: 0;
-    }
-    .d-bar-fill { height: 100%; border-radius: 3px; }
+    .d-bar-track { width: 52px; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; flex-shrink: 0; }
+    .d-bar-fill  { height: 100%; border-radius: 3px; }
     .d-value { font-weight: 700; font-variant-numeric: tabular-nums; min-width: 34px; }
-
     .outer-edge { font-weight: 600; font-variant-numeric: tabular-nums; }
     .star-icon { color: var(--excellent); font-size: 12px; margin-left: 2px; }
 
@@ -343,82 +374,57 @@
     .empty-state p { font-size: 15px; font-weight: 500; }
     .empty-state small { font-size: 12px; color: var(--text-light); display: block; margin-top: 6px; }
 
-    /* ═══════════════════════════════════════════
-       Responsive — Tablet  ≤ 768px
-    ═══════════════════════════════════════════ */
-    @media (max-width: 768px) {
-      .filter-grid { grid-template-columns: 1fr 1fr; gap: 16px 20px; }
-    }
-
-    /* ═══════════════════════════════════════════
+    /* ═══════════════════════════════════
        Responsive — Mobile  ≤ 600px
-    ═══════════════════════════════════════════ */
+    ═══════════════════════════════════ */
     @media (max-width: 600px) {
-      /* Header */
       header { padding: 14px 16px 18px; }
       header h1 { font-size: 18px; }
       header p  { font-size: 12px; }
 
-      /* Container */
       .container { padding: 12px 12px 32px; gap: 12px; }
-
-      /* Cards */
       .card { padding: 16px; border-radius: 10px; }
 
-      /* Formula: stack equations vertically */
       .formula-box { padding: 12px 14px; gap: 10px; }
       .formula-icon { font-size: 18px; }
       .formula-eqs { flex-direction: column; gap: 4px; }
       .formula-eq { font-size: 12px; }
       .formula-content p { font-size: 11px; }
 
-      /* PD section: stack vertically, center number */
       .pd-row { flex-direction: column; align-items: stretch; gap: 14px; }
-      .pd-display {
-        font-size: 52px;
-        width: 100%;
-        text-align: center;
-      }
+      .pd-display { font-size: 52px; width: 100%; text-align: center; }
       .pd-slider-wrap { min-width: unset; }
       .pd-manual { justify-content: center; }
 
-      /* Larger slider thumb for touch */
       input[type="range"] { height: 8px; }
       input[type="range"]::-webkit-slider-thumb { width: 30px; height: 30px; }
 
-      /* Filter grid: 1 column */
       .filter-grid { grid-template-columns: 1fr; gap: 18px; }
 
-      /* Dec badge: slightly larger */
       .dec-value-badge { font-size: 15px; min-width: 74px; padding: 7px 12px; }
 
-      /* Results top: stack on narrow */
       .results-top { flex-direction: column; align-items: flex-start; gap: 8px; }
       .result-count .num { font-size: 20px; }
 
-      /* Legend: tighter */
       .legend { gap: 8px; }
       .legend-item { font-size: 10px; gap: 4px; }
 
-      /* Sort bar label hidden on mobile to save space */
       .sort-bar-label { display: none; }
 
-      /* Table: compact cells */
       thead th { padding: 8px 10px; font-size: 10px; }
       td { padding: 9px 10px; font-size: 12px; }
-
-      /* Hide d-bar on mobile to save width */
       .d-bar-track { display: none; }
+
+      /* Wheel: slightly wider on mobile */
+      .wheel-wrap { width: 72px; }
     }
 
-    /* ═══════════════════════════════════════════
-       Responsive — Small mobile  ≤ 390px
-    ═══════════════════════════════════════════ */
     @media (max-width: 390px) {
       .pd-display { font-size: 44px; }
       .dec-status { font-size: 16px; padding: 4px 12px; }
       .card { padding: 14px; }
       header h1 { font-size: 17px; }
+      .wheel-wrap { width: 64px; }
     }
   </style>
 </head>
@@ -488,16 +494,11 @@
       <div>
         <span class="filter-label">镜片宽度 A 值</span>
         <div class="lens-bridge-wrap">
-          <div class="range-row">
-            <span>范围</span>
-            <input class="range-input" type="number" id="lens-min"
-                   min="35" max="60" value="35"
-                   inputmode="numeric" autocomplete="off">
-            <span>—</span>
-            <input class="range-input" type="number" id="lens-max"
-                   min="35" max="60" value="60"
-                   inputmode="numeric" autocomplete="off">
-            <span>mm</span>
+          <div class="wheel-range-row">
+            <div class="wheel-wrap" id="wheel-lens-min"></div>
+            <span class="wheel-sep">—</span>
+            <div class="wheel-wrap" id="wheel-lens-max"></div>
+            <span class="wheel-unit">mm</span>
           </div>
           <div class="exact-row">
             <span>精确值</span>
@@ -514,16 +515,11 @@
       <div>
         <span class="filter-label">鼻梁间距 DBL</span>
         <div class="lens-bridge-wrap">
-          <div class="range-row">
-            <span>范围</span>
-            <input class="range-input" type="number" id="bridge-min"
-                   min="12" max="25" value="12"
-                   inputmode="numeric" autocomplete="off">
-            <span>—</span>
-            <input class="range-input" type="number" id="bridge-max"
-                   min="12" max="25" value="25"
-                   inputmode="numeric" autocomplete="off">
-            <span>mm</span>
+          <div class="wheel-range-row">
+            <div class="wheel-wrap" id="wheel-bridge-min"></div>
+            <span class="wheel-sep">—</span>
+            <div class="wheel-wrap" id="wheel-bridge-max"></div>
+            <span class="wheel-unit">mm</span>
           </div>
           <div class="exact-row">
             <span>精确值</span>
@@ -632,6 +628,173 @@
     if (v <= 3) return { bg: '#cffafe', color: '#0891b2', hint: '优秀' };
     if (v <= 5) return { bg: '#fef3c7', color: '#d97706', hint: '可接受' };
     return       { bg: '#fee2e2', color: '#dc2626', hint: '不推荐' };
+  }
+
+  // ─────────────────────────────────────────────
+  //  Wheel Picker
+  // ─────────────────────────────────────────────
+  const ITEM_H = 40; // matches CSS --item-h
+
+  /**
+   * Create a scroll-wheel picker inside `wrapEl`.
+   * @param {HTMLElement} wrapEl
+   * @param {number} min
+   * @param {number} max
+   * @param {number} initValue
+   * @param {function} onChange  called with new value when settled
+   * @returns {{ setValue(v: number): void }}
+   */
+  function createWheel(wrapEl, min, max, initValue, onChange) {
+    // Build DOM
+    const itemsEl = document.createElement('div');
+    itemsEl.className = 'wp-items';
+
+    // Top padding sentinel
+    const padTop = document.createElement('div');
+    padTop.className = 'wp-pad';
+    itemsEl.appendChild(padTop);
+
+    // Value items
+    for (let v = min; v <= max; v++) {
+      const el = document.createElement('div');
+      el.className = 'wp-item';
+      el.dataset.v = v;
+      el.textContent = v;
+      itemsEl.appendChild(el);
+    }
+
+    // Bottom padding sentinel
+    const padBot = document.createElement('div');
+    padBot.className = 'wp-pad';
+    itemsEl.appendChild(padBot);
+
+    // Selection indicator bar
+    const indicator = document.createElement('div');
+    indicator.className = 'wp-indicator';
+
+    wrapEl.appendChild(itemsEl);
+    wrapEl.appendChild(indicator);
+
+    let currentValue = initValue;
+
+    // Update visual highlight
+    function highlight(v) {
+      itemsEl.querySelectorAll('.wp-item').forEach(el => {
+        el.classList.toggle('selected', +el.dataset.v === v);
+      });
+    }
+
+    // Read settled value from scrollTop
+    function readValue() {
+      const idx = Math.round(itemsEl.scrollTop / ITEM_H);
+      return min + Math.max(0, Math.min(max - min, idx));
+    }
+
+    // Called when scrolling settles
+    function onSettle() {
+      const v = readValue();
+      // Ensure exact snap position
+      const targetTop = (v - min) * ITEM_H;
+      if (Math.abs(itemsEl.scrollTop - targetTop) > 0.5) {
+        itemsEl.scrollTop = targetTop;
+      }
+      if (v !== currentValue) {
+        currentValue = v;
+        highlight(v);
+        onChange(v);
+      }
+    }
+
+    // Use native scrollend if available, else debounced scroll
+    if ('onscrollend' in itemsEl) {
+      itemsEl.addEventListener('scrollend', onSettle);
+    } else {
+      let timer;
+      itemsEl.addEventListener('scroll', () => {
+        clearTimeout(timer);
+        timer = setTimeout(onSettle, 160);
+      }, { passive: true });
+    }
+
+    // Click on non-center item to jump to it
+    itemsEl.addEventListener('click', e => {
+      const item = e.target.closest('.wp-item');
+      if (!item) return;
+      const v = +item.dataset.v;
+      if (v !== currentValue) {
+        setValue(v);
+        onChange(v);
+      }
+    });
+
+    // Programmatic value setter
+    function setValue(v) {
+      const clamped = Math.max(min, Math.min(max, v));
+      currentValue = clamped;
+      itemsEl.scrollTop = (clamped - min) * ITEM_H;
+      highlight(clamped);
+    }
+
+    // Init
+    setValue(initValue);
+
+    return { setValue };
+  }
+
+  // ─────────────────────────────────────────────
+  //  Wheel picker instances (populated in syncUI)
+  // ─────────────────────────────────────────────
+  const wheels = {};
+
+  function initWheels() {
+    wheels.lensMin = createWheel(
+      document.getElementById('wheel-lens-min'),
+      35, 60, state.lensMin,
+      v => {
+        state.lensMin = Math.min(v, state.lensMax);
+        if (v > state.lensMax) {
+          state.lensMax = v;
+          wheels.lensMax.setValue(v);
+        }
+        render();
+      }
+    );
+    wheels.lensMax = createWheel(
+      document.getElementById('wheel-lens-max'),
+      35, 60, state.lensMax,
+      v => {
+        state.lensMax = Math.max(v, state.lensMin);
+        if (v < state.lensMin) {
+          state.lensMin = v;
+          wheels.lensMin.setValue(v);
+        }
+        render();
+      }
+    );
+    wheels.bridgeMin = createWheel(
+      document.getElementById('wheel-bridge-min'),
+      12, 25, state.bridgeMin,
+      v => {
+        state.bridgeMin = Math.min(v, state.bridgeMax);
+        if (v > state.bridgeMax) {
+          state.bridgeMax = v;
+          wheels.bridgeMax.setValue(v);
+        }
+        render();
+      }
+    );
+    wheels.bridgeMax = createWheel(
+      document.getElementById('wheel-bridge-max'),
+      12, 25, state.bridgeMax,
+      v => {
+        state.bridgeMax = Math.max(v, state.bridgeMin);
+        if (v < state.bridgeMin) {
+          state.bridgeMin = v;
+          wheels.bridgeMin.setValue(v);
+        }
+        render();
+      }
+    );
   }
 
   // ─────────────────────────────────────────────
@@ -769,29 +932,10 @@
   }
 
   decSlider.addEventListener('input', e => {
-    const v = parseFloat(e.target.value);
-    state.maxDec = v;
-    updateDecBadge(v);
+    state.maxDec = parseFloat(e.target.value);
+    updateDecBadge(state.maxDec);
     render();
   });
-
-  // ─────────────────────────────────────────────
-  //  Range inputs
-  // ─────────────────────────────────────────────
-  function bindRange(id, key, clampFn) {
-    document.getElementById(id).addEventListener('input', e => {
-      const v = parseInt(e.target.value);
-      if (isNaN(v)) return;
-      state[key] = clampFn(v);
-      e.target.value = state[key];
-      render();
-    });
-  }
-
-  bindRange('lens-min',   'lensMin',   v => Math.max(35, Math.min(v, state.lensMax)));
-  bindRange('lens-max',   'lensMax',   v => Math.min(60, Math.max(v, state.lensMin)));
-  bindRange('bridge-min', 'bridgeMin', v => Math.max(12, Math.min(v, state.bridgeMax)));
-  bindRange('bridge-max', 'bridgeMax', v => Math.min(25, Math.max(v, state.bridgeMin)));
 
   // ─────────────────────────────────────────────
   //  Exact value inputs
@@ -818,17 +962,13 @@
   }
 
   function clearExact(which) {
-    if (which === 'lens') {
-      state.lensExact = null;
-      document.getElementById('lens-exact').value = '';
-      document.getElementById('lens-exact').classList.remove('active');
-      document.getElementById('lens-exact-clear').classList.remove('visible');
-    } else {
-      state.bridgeExact = null;
-      document.getElementById('bridge-exact').value = '';
-      document.getElementById('bridge-exact').classList.remove('active');
-      document.getElementById('bridge-exact-clear').classList.remove('visible');
-    }
+    const inputId = which === 'lens' ? 'lens-exact' : 'bridge-exact';
+    const clearId = which === 'lens' ? 'lens-exact-clear' : 'bridge-exact-clear';
+    const key     = which === 'lens' ? 'lensExact' : 'bridgeExact';
+    state[key] = null;
+    document.getElementById(inputId).value = '';
+    document.getElementById(inputId).classList.remove('active');
+    document.getElementById(clearId).classList.remove('visible');
     render();
   }
 
@@ -861,7 +1001,7 @@
   });
 
   // ─────────────────────────────────────────────
-  //  Persist (localStorage)
+  //  Persist
   // ─────────────────────────────────────────────
   const STORAGE_KEY = 'suitable-glasses-state';
 
@@ -881,18 +1021,23 @@
   }
 
   function syncUI() {
+    // PD
     pdSlider.value = state.pd;
     pdNumber.value = state.pd;
     pdDisplay.innerHTML = `${state.pd.toFixed(1)} <span>mm</span>`;
 
+    // Decentration
     decSlider.value = state.maxDec;
     updateDecBadge(state.maxDec);
 
-    document.getElementById('lens-min').value   = state.lensMin;
-    document.getElementById('lens-max').value   = state.lensMax;
-    document.getElementById('bridge-min').value = state.bridgeMin;
-    document.getElementById('bridge-max').value = state.bridgeMax;
+    // Wheel pickers (created fresh each time syncUI is called)
+    document.getElementById('wheel-lens-min').innerHTML   = '';
+    document.getElementById('wheel-lens-max').innerHTML   = '';
+    document.getElementById('wheel-bridge-min').innerHTML = '';
+    document.getElementById('wheel-bridge-max').innerHTML = '';
+    initWheels();
 
+    // Exact inputs
     const lensExactEl    = document.getElementById('lens-exact');
     const lensExactClr   = document.getElementById('lens-exact-clear');
     const bridgeExactEl  = document.getElementById('bridge-exact');
@@ -918,6 +1063,7 @@
       bridgeExactClr.classList.remove('visible');
     }
 
+    // Sort buttons
     sortBtns.forEach(b => {
       b.classList.remove('active');
       b.textContent = sortLabels[b.dataset.key];
