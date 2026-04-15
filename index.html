@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>适镜计算器 · Suitable Glasses</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-light: #dbeafe;
+      --primary-dark: #1d4ed8;
+      --excellent: #16a34a;
+      --excellent-bg: #dcfce7;
+      --good: #0891b2;
+      --good-bg: #cffafe;
+      --acceptable: #d97706;
+      --acceptable-bg: #fef3c7;
+      --poor: #dc2626;
+      --poor-bg: #fee2e2;
+      --bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --text-light: #94a3b8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ─── Header ─── */
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 20px 24px 24px;
+    }
+    .header-inner { max-width: 1060px; margin: 0 auto; }
+    header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+    header p  { font-size: 13px; opacity: 0.75; margin-top: 4px; }
+
+    /* ─── Layout ─── */
+    .container {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 14px;
+    }
+
+    /* ─── Formula Box ─── */
+    .formula-box {
+      background: var(--primary-light);
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .formula-icon { font-size: 22px; line-height: 1; margin-top: 2px; flex-shrink: 0; }
+    .formula-content strong { color: var(--primary-dark); font-size: 13px; }
+    .formula-eqs { margin: 6px 0 4px; display: flex; flex-wrap: wrap; gap: 6px 20px; }
+    .formula-eq {
+      font-family: 'Courier New', 'Consolas', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.2px;
+    }
+    .formula-content p { font-size: 12px; color: var(--text-muted); }
+
+    /* ─── PD Input ─── */
+    .pd-row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .pd-display {
+      font-size: 52px; font-weight: 800; color: var(--primary);
+      line-height: 1;
+      width: 168px;
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .pd-display span { font-size: 18px; font-weight: 400; color: var(--text-muted); }
+    .pd-slider-wrap { flex: 1; min-width: 220px; }
+
+    /* ─── Shared slider style ─── */
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.4);
+      transition: transform 0.1s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+    .slider-labels {
+      display: flex; justify-content: space-between;
+      font-size: 11px; color: var(--text-light); margin-top: 5px;
+    }
+
+    .pd-manual { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+    .pd-manual label { font-size: 12px; color: var(--text-muted); }
+
+    .number-input {
+      padding: 7px 10px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      text-align: center;
+      outline: none;
+      width: 80px;
+      transition: border-color 0.15s;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .number-input:focus { border-color: var(--primary); }
+
+    /* ─── Filters ─── */
+    .filter-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px 28px;
+    }
+    @media (max-width: 600px) { .filter-grid { grid-template-columns: 1fr; } }
+
+    .filter-label {
+      font-size: 12px; font-weight: 600; color: var(--text-muted);
+      margin-bottom: 8px; display: block;
+    }
+
+    /* ─── Decentration Slider ─── */
+    .dec-slider-row { display: flex; align-items: center; gap: 12px; }
+    .dec-slider-wrap { flex: 1; }
+    .dec-value-badge {
+      min-width: 64px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      transition: background 0.2s, color 0.2s;
+      flex-shrink: 0;
+    }
+    .dec-hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+    .dec-status {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 5px 16px;
+      border-radius: 20px;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      transition: background 0.25s, color 0.25s;
+    }
+
+    /* ─── Lens / Bridge filter ─── */
+    .lens-bridge-wrap { display: flex; flex-direction: column; gap: 8px; }
+
+    .range-row {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; color: var(--text-muted);
+    }
+    .range-input {
+      width: 58px; padding: 6px 6px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px; text-align: center;
+      outline: none; font-weight: 600; color: var(--text);
+      transition: border-color 0.15s;
+    }
+    .range-input:focus { border-color: var(--primary); }
+
+    .exact-row {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text-muted);
+    }
+    .exact-input {
+      width: 62px; padding: 5px 6px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px; text-align: center;
+      outline: none; font-weight: 600; color: var(--text);
+      transition: border-color 0.15s;
+    }
+    .exact-input:focus  { border-color: var(--primary); }
+    .exact-input.active { border-color: var(--primary); background: var(--primary-light); }
+
+    .exact-clear {
+      font-size: 11px; color: var(--primary);
+      cursor: pointer; text-decoration: underline;
+      display: none;
+    }
+    .exact-clear.visible { display: inline; }
+
+    /* ─── Results ─── */
+    .results-top {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px; margin-bottom: 14px;
+    }
+    .result-count { font-size: 15px; font-weight: 600; }
+    .result-count .num { font-size: 22px; font-weight: 800; color: var(--primary); margin-right: 2px; }
+
+    .legend { display: flex; gap: 12px; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); }
+    .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+    .sort-bar {
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 14px; flex-wrap: wrap;
+    }
+    .sort-bar-label {
+      font-size: 11px; color: var(--text-muted); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px; margin-right: 2px;
+    }
+    .sort-btn {
+      padding: 4px 11px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px; font-weight: 500;
+      cursor: pointer; background: white; color: var(--text-muted);
+      transition: all 0.15s;
+    }
+    .sort-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .sort-btn.active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); font-weight: 600; }
+
+    /* ─── Table ─── */
+    .table-wrapper {
+      border-radius: 8px; border: 1px solid var(--border);
+      overflow: hidden; overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+    thead th {
+      padding: 10px 14px; text-align: left;
+      font-size: 11px; font-weight: 700; color: var(--text-muted);
+      background: #f8fafc; border-bottom: 1px solid var(--border);
+      white-space: nowrap; text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f8fafc; }
+    tbody tr.top-row { background: #f0fdf4; }
+    tbody tr.top-row:hover { background: #dcfce7; }
+
+    td { padding: 10px 14px; white-space: nowrap; }
+
+    .rank {
+      font-size: 11px; color: var(--text-light);
+      font-variant-numeric: tabular-nums;
+      width: 28px; display: inline-block; text-align: right;
+    }
+    .rank.top { font-weight: 700; color: var(--excellent); }
+
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 3px 9px; border-radius: 12px;
+      font-size: 11px; font-weight: 600;
+    }
+    .badge-excellent  { background: var(--excellent-bg);  color: var(--excellent); }
+    .badge-good       { background: var(--good-bg);       color: var(--good); }
+    .badge-acceptable { background: var(--acceptable-bg); color: var(--acceptable); }
+    .badge-poor       { background: var(--poor-bg);       color: var(--poor); }
+
+    .d-cell { display: flex; align-items: center; gap: 8px; }
+    .d-bar-track {
+      width: 52px; height: 5px; background: var(--border);
+      border-radius: 3px; overflow: hidden; flex-shrink: 0;
+    }
+    .d-bar-fill { height: 100%; border-radius: 3px; }
+    .d-value { font-weight: 700; font-variant-numeric: tabular-nums; min-width: 34px; }
+
+    .outer-edge { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    .star-icon { color: var(--excellent); font-size: 12px; margin-left: 2px; }
+
+    .empty-state { text-align: center; padding: 52px 24px; color: var(--text-muted); }
+    .empty-state .empty-icon { font-size: 36px; margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; font-weight: 500; }
+    .empty-state small { font-size: 12px; color: var(--text-light); display: block; margin-top: 6px; }
+
+    @media (max-width: 480px) {
+      .pd-display { font-size: 40px; }
+      .container { padding: 14px 10px 32px; }
+      .card { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <h1>适镜计算器</h1>
+    <p>根据瞳距推荐最佳镜片宽度 × 鼻梁间距组合，移心量越小佩戴越舒适</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Formula -->
+  <div class="formula-box">
+    <div class="formula-icon">📐</div>
+    <div class="formula-content">
+      <strong>计算公式</strong>
+      <div class="formula-eqs">
+        <span class="formula-eq">移心量 = (镜片宽度 + 鼻梁间距 − 瞳距) ÷ 2</span>
+        <span class="formula-eq">外侧边缘距 = 镜片宽度 ÷ 2 + 移心量</span>
+      </div>
+      <p>框架瞳距 = 镜片宽度 + 鼻梁间距；外侧边缘距越大，高度近视镜片外侧越厚；推荐移心量 ≤ 3mm</p>
+    </div>
+  </div>
+
+  <!-- PD Input -->
+  <div class="card">
+    <div class="card-title">瞳距 (PD — Pupillary Distance)</div>
+    <div class="pd-row">
+      <div class="pd-display" id="pd-display">64 <span>mm</span></div>
+      <div class="pd-slider-wrap">
+        <input type="range" id="pd-slider" min="52" max="76" value="64" step="0.5">
+        <div class="slider-labels"><span>52 mm</span><span>64 mm</span><span>76 mm</span></div>
+        <div class="pd-manual">
+          <label for="pd-number">精确输入：</label>
+          <input class="number-input" type="number" id="pd-number" min="52" max="76" step="0.5" value="64">
+          <span style="font-size:12px;color:var(--text-muted)">mm</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card">
+    <div class="card-title">筛选条件</div>
+    <div class="filter-grid">
+
+      <!-- Decentration slider -->
+      <div>
+        <span class="filter-label">移心量上限</span>
+        <div class="dec-slider-row">
+          <div class="dec-slider-wrap">
+            <input type="range" id="dec-slider" min="0" max="8" value="3" step="0.5">
+            <div class="slider-labels"><span>0</span><span>4 mm</span><span>8 mm</span></div>
+          </div>
+          <div class="dec-value-badge" id="dec-badge">3.0 mm</div>
+        </div>
+        <div class="dec-hint" id="dec-hint">显示移心量 ≤ 3.0mm 的组合</div>
+        <div class="dec-status" id="dec-status">优秀</div>
+      </div>
+
+      <!-- Lens width -->
+      <div>
+        <span class="filter-label">镜片宽度 A 值</span>
+        <div class="lens-bridge-wrap">
+          <div class="range-row">
+            <span>范围</span>
+            <input class="range-input" type="number" id="lens-min" min="35" max="60" value="35">
+            <span>—</span>
+            <input class="range-input" type="number" id="lens-max" min="35" max="60" value="60">
+            <span>mm</span>
+          </div>
+          <div class="exact-row">
+            <span>精确值</span>
+            <input class="exact-input" type="number" id="lens-exact" min="35" max="60" placeholder="—">
+            <span>mm</span>
+            <span class="exact-clear" id="lens-exact-clear" onclick="clearExact('lens')">清除</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bridge width -->
+      <div>
+        <span class="filter-label">鼻梁间距 DBL</span>
+        <div class="lens-bridge-wrap">
+          <div class="range-row">
+            <span>范围</span>
+            <input class="range-input" type="number" id="bridge-min" min="12" max="25" value="12">
+            <span>—</span>
+            <input class="range-input" type="number" id="bridge-max" min="12" max="25" value="25">
+            <span>mm</span>
+          </div>
+          <div class="exact-row">
+            <span>精确值</span>
+            <input class="exact-input" type="number" id="bridge-exact" min="12" max="25" placeholder="—">
+            <span>mm</span>
+            <span class="exact-clear" id="bridge-exact-clear" onclick="clearExact('bridge')">清除</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Frame PD info -->
+      <div>
+        <span class="filter-label">匹配的框架瞳距范围</span>
+        <div id="frame-pd-info" style="font-size:14px;padding-top:6px;color:var(--text-muted)">—</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="card">
+    <div class="results-top">
+      <div class="result-count">
+        共 <span class="num" id="result-count">0</span> 种组合
+      </div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--excellent)"></div>极佳 ≤2mm</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--good)"></div>优秀 2–3mm</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--acceptable)"></div>可接受 3–5mm</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--poor)"></div>不推荐 &gt;5mm</div>
+      </div>
+    </div>
+
+    <div class="sort-bar">
+      <span class="sort-bar-label">排序</span>
+      <button class="sort-btn active" data-key="d">移心量</button>
+      <button class="sort-btn" data-key="outer">外侧边缘距</button>
+      <button class="sort-btn" data-key="lens">镜片宽度</button>
+      <button class="sort-btn" data-key="bridge">鼻梁间距</button>
+      <button class="sort-btn" data-key="framePD">框架瞳距</button>
+    </div>
+
+    <div class="table-wrapper" id="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>镜片宽度 (A)</th>
+            <th>鼻梁间距 (DBL)</th>
+            <th>框架瞳距</th>
+            <th>移心量</th>
+            <th title="= 镜片宽度÷2 + 移心量">外侧边缘距 ①</th>
+            <th>评级</th>
+          </tr>
+        </thead>
+        <tbody id="results-body"></tbody>
+      </table>
+    </div>
+
+    <div id="empty-state" class="empty-state" style="display:none">
+      <div class="empty-icon">🔍</div>
+      <p>没有符合条件的组合</p>
+      <small>请放宽移心量上限，或调整镜片 / 鼻梁范围</small>
+    </div>
+
+    <div style="margin-top:10px;font-size:11px;color:var(--text-light)">
+      ① 外侧边缘距 = 镜片宽度 ÷ 2 + 移心量，即视觉中心到镜片颞侧（外侧）边缘的距离，值越大高度近视外侧镜片越厚
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ─────────────────────────────────────────────
+  //  State
+  // ─────────────────────────────────────────────
+  const state = {
+    pd:         64,
+    maxDec:     3,
+    lensMin:    35,
+    lensMax:    60,
+    lensExact:  null,   // null = no exact filter
+    bridgeMin:  12,
+    bridgeMax:  25,
+    bridgeExact: null,
+    sortKey:   'd',
+    sortDir:    1,
+  };
+
+  // ─────────────────────────────────────────────
+  //  Rating helpers
+  // ─────────────────────────────────────────────
+  function rating(d) {
+    if (d <= 2)  return { label: '极佳',   cls: 'badge-excellent', color: '#16a34a' };
+    if (d <= 3)  return { label: '优秀',   cls: 'badge-good',      color: '#0891b2' };
+    if (d <= 5)  return { label: '可接受', cls: 'badge-acceptable',color: '#d97706' };
+    return       { label: '不推荐',        cls: 'badge-poor',      color: '#dc2626' };
+  }
+
+  function decBadgeStyle(v) {
+    if (v <= 2) return { bg: '#dcfce7', color: '#16a34a', hint: '极佳' };
+    if (v <= 3) return { bg: '#cffafe', color: '#0891b2', hint: '优秀' };
+    if (v <= 5) return { bg: '#fef3c7', color: '#d97706', hint: '可接受' };
+    return       { bg: '#fee2e2', color: '#dc2626', hint: '不推荐' };
+  }
+
+  // ─────────────────────────────────────────────
+  //  Calculate
+  // ─────────────────────────────────────────────
+  function calculate() {
+    const rows = [];
+    const lMin = state.lensExact   !== null ? state.lensExact   : state.lensMin;
+    const lMax = state.lensExact   !== null ? state.lensExact   : state.lensMax;
+    const bMin = state.bridgeExact !== null ? state.bridgeExact : state.bridgeMin;
+    const bMax = state.bridgeExact !== null ? state.bridgeExact : state.bridgeMax;
+
+    for (let lens = lMin; lens <= lMax; lens++) {
+      for (let bridge = bMin; bridge <= bMax; bridge++) {
+        const framePD = lens + bridge;
+        const d = (framePD - state.pd) / 2;
+        if (d < 0 || d > state.maxDec) continue;
+        const outer = lens / 2 + d;        // 外侧边缘距
+        rows.push({ lens, bridge, framePD, d, outer });
+      }
+    }
+    return rows;
+  }
+
+  // ─────────────────────────────────────────────
+  //  Sort
+  // ─────────────────────────────────────────────
+  function sortRows(rows) {
+    return [...rows].sort((a, b) => {
+      let va, vb;
+      switch (state.sortKey) {
+        case 'outer':   va = a.outer;   vb = b.outer;   break;
+        case 'lens':    va = a.lens;    vb = b.lens;    break;
+        case 'bridge':  va = a.bridge;  vb = b.bridge;  break;
+        case 'framePD': va = a.framePD; vb = b.framePD; break;
+        default:        va = a.d;       vb = b.d;
+      }
+      if (va !== vb) return (va - vb) * state.sortDir;
+      return a.d - b.d;  // secondary: decentration asc
+    });
+  }
+
+  // ─────────────────────────────────────────────
+  //  Render
+  // ─────────────────────────────────────────────
+  function render() {
+    saveState();
+    const rows  = sortRows(calculate());
+    const tbody = document.getElementById('results-body');
+    const empty = document.getElementById('empty-state');
+    const wrap  = document.getElementById('table-wrapper');
+
+    document.getElementById('result-count').textContent = rows.length;
+
+    const fpds = rows.map(r => r.framePD);
+    document.getElementById('frame-pd-info').innerHTML = fpds.length
+      ? `<strong style="color:var(--text);font-size:15px">${Math.min(...fpds)} – ${Math.max(...fpds)}</strong>&nbsp;<span style="font-size:12px">mm（当前筛选结果）</span>`
+      : '<span style="font-size:13px">—</span>';
+
+    if (rows.length === 0) {
+      wrap.style.display  = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+    wrap.style.display  = 'block';
+    empty.style.display = 'none';
+
+    const minD = Math.min(...rows.map(r => r.d));
+
+    tbody.innerHTML = rows.map((r, i) => {
+      const rt    = rating(r.d);
+      const isTop = r.d === minD;
+      const barW  = Math.min(100, (r.d / 5) * 100).toFixed(1);
+      const star  = isTop ? '<span class="star-icon" title="当前最佳匹配">★</span>' : '';
+      return `
+        <tr class="${isTop ? 'top-row' : ''}">
+          <td><span class="rank ${isTop ? 'top' : ''}">${i + 1}</span></td>
+          <td><strong>${r.lens}</strong> mm</td>
+          <td><strong>${r.bridge}</strong> mm</td>
+          <td>${r.framePD} mm</td>
+          <td>
+            <div class="d-cell">
+              <div class="d-bar-track">
+                <div class="d-bar-fill" style="width:${barW}%;background:${rt.color}"></div>
+              </div>
+              <span class="d-value" style="color:${rt.color}">${r.d.toFixed(1)}</span>
+              <span style="font-size:11px;color:var(--text-light)">mm</span>
+              ${star}
+            </div>
+          </td>
+          <td><span class="outer-edge">${r.outer.toFixed(1)}</span> <span style="font-size:11px;color:var(--text-light)">mm</span></td>
+          <td><span class="badge ${rt.cls}">${rt.label}</span></td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ─────────────────────────────────────────────
+  //  PD controls
+  // ─────────────────────────────────────────────
+  const pdSlider  = document.getElementById('pd-slider');
+  const pdNumber  = document.getElementById('pd-number');
+  const pdDisplay = document.getElementById('pd-display');
+
+  function setPD(raw) {
+    const v = parseFloat(raw);
+    if (isNaN(v)) return;
+    const clamped = Math.max(52, Math.min(76, Math.round(v * 2) / 2));
+    state.pd = clamped;
+    pdSlider.value  = clamped;
+    pdNumber.value  = clamped;
+    pdDisplay.innerHTML = `${clamped.toFixed(1)} <span>mm</span>`;
+    render();
+  }
+
+  pdSlider.addEventListener('input',  e => setPD(e.target.value));
+  pdNumber.addEventListener('input',  e => setPD(e.target.value));
+
+  // ─────────────────────────────────────────────
+  //  Decentration slider
+  // ─────────────────────────────────────────────
+  const decSlider = document.getElementById('dec-slider');
+  const decBadge  = document.getElementById('dec-badge');
+  const decHint   = document.getElementById('dec-hint');
+  const decStatus = document.getElementById('dec-status');
+
+  function updateDecBadge(v) {
+    const s = decBadgeStyle(v);
+    decBadge.style.background = s.bg;
+    decBadge.style.color      = s.color;
+    decBadge.textContent      = `${v.toFixed(1)} mm`;
+    decHint.textContent       = `显示移心量 ≤ ${v.toFixed(1)}mm 的组合`;
+    decStatus.textContent     = s.hint;
+    decStatus.style.background = s.bg;
+    decStatus.style.color      = s.color;
+  }
+
+  decSlider.addEventListener('input', e => {
+    const v = parseFloat(e.target.value);
+    state.maxDec = v;
+    updateDecBadge(v);
+    render();
+  });
+
+  updateDecBadge(state.maxDec);
+
+  // ─────────────────────────────────────────────
+  //  Range inputs
+  // ─────────────────────────────────────────────
+  function bindRange(id, key, clampFn) {
+    document.getElementById(id).addEventListener('input', e => {
+      const v = parseInt(e.target.value);
+      if (isNaN(v)) return;
+      state[key] = clampFn(v);
+      e.target.value = state[key];
+      render();
+    });
+  }
+
+  bindRange('lens-min',   'lensMin',   v => Math.max(35, Math.min(v, state.lensMax)));
+  bindRange('lens-max',   'lensMax',   v => Math.min(60, Math.max(v, state.lensMin)));
+  bindRange('bridge-min', 'bridgeMin', v => Math.max(12, Math.min(v, state.bridgeMax)));
+  bindRange('bridge-max', 'bridgeMax', v => Math.min(25, Math.max(v, state.bridgeMin)));
+
+  // ─────────────────────────────────────────────
+  //  Exact value inputs
+  // ─────────────────────────────────────────────
+  function bindExact(inputId, clearId, stateKey, min, max) {
+    const input = document.getElementById(inputId);
+    const clear = document.getElementById(clearId);
+
+    input.addEventListener('input', e => {
+      const raw = e.target.value.trim();
+      if (raw === '') {
+        state[stateKey] = null;
+        input.classList.remove('active');
+        clear.classList.remove('visible');
+      } else {
+        const v = parseInt(raw);
+        if (!isNaN(v) && v >= min && v <= max) {
+          state[stateKey] = v;
+          input.classList.add('active');
+          clear.classList.add('visible');
+        }
+      }
+      render();
+    });
+  }
+
+  function clearExact(which) {
+    if (which === 'lens') {
+      state.lensExact = null;
+      document.getElementById('lens-exact').value = '';
+      document.getElementById('lens-exact').classList.remove('active');
+      document.getElementById('lens-exact-clear').classList.remove('visible');
+    } else {
+      state.bridgeExact = null;
+      document.getElementById('bridge-exact').value = '';
+      document.getElementById('bridge-exact').classList.remove('active');
+      document.getElementById('bridge-exact-clear').classList.remove('visible');
+    }
+    render();
+  }
+
+  bindExact('lens-exact',   'lens-exact-clear',   'lensExact',   35, 60);
+  bindExact('bridge-exact', 'bridge-exact-clear', 'bridgeExact', 12, 25);
+
+  // ─────────────────────────────────────────────
+  //  Sort buttons
+  // ─────────────────────────────────────────────
+  const sortBtns = document.querySelectorAll('.sort-btn');
+  const sortLabels = { d: '移心量', outer: '外侧边缘距', lens: '镜片宽度', bridge: '鼻梁间距', framePD: '框架瞳距' };
+
+  sortBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.key;
+      if (state.sortKey === key) {
+        state.sortDir *= -1;
+      } else {
+        state.sortKey = key;
+        state.sortDir = 1;
+      }
+      sortBtns.forEach(b => {
+        b.classList.remove('active');
+        b.textContent = sortLabels[b.dataset.key];
+      });
+      btn.classList.add('active');
+      btn.textContent = sortLabels[key] + (state.sortDir === 1 ? ' ↑' : ' ↓');
+      render();
+    });
+  });
+
+  // ─────────────────────────────────────────────
+  //  Persist (localStorage)
+  // ─────────────────────────────────────────────
+  const STORAGE_KEY = 'suitable-glasses-state';
+
+  function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      const keys = ['pd','maxDec','lensMin','lensMax','lensExact',
+                    'bridgeMin','bridgeMax','bridgeExact','sortKey','sortDir'];
+      keys.forEach(k => { if (saved[k] !== undefined) state[k] = saved[k]; });
+    } catch (e) {}
+  }
+
+  function syncUI() {
+    // PD
+    pdSlider.value = state.pd;
+    pdNumber.value = state.pd;
+    pdDisplay.innerHTML = `${state.pd} <span>mm</span>`;
+
+    // Decentration slider
+    decSlider.value = state.maxDec;
+    updateDecBadge(state.maxDec);
+
+    // Range inputs
+    document.getElementById('lens-min').value   = state.lensMin;
+    document.getElementById('lens-max').value   = state.lensMax;
+    document.getElementById('bridge-min').value = state.bridgeMin;
+    document.getElementById('bridge-max').value = state.bridgeMax;
+
+    // Exact inputs
+    const lensExactEl    = document.getElementById('lens-exact');
+    const lensExactClr   = document.getElementById('lens-exact-clear');
+    const bridgeExactEl  = document.getElementById('bridge-exact');
+    const bridgeExactClr = document.getElementById('bridge-exact-clear');
+
+    if (state.lensExact !== null) {
+      lensExactEl.value = state.lensExact;
+      lensExactEl.classList.add('active');
+      lensExactClr.classList.add('visible');
+    } else {
+      lensExactEl.value = '';
+      lensExactEl.classList.remove('active');
+      lensExactClr.classList.remove('visible');
+    }
+
+    if (state.bridgeExact !== null) {
+      bridgeExactEl.value = state.bridgeExact;
+      bridgeExactEl.classList.add('active');
+      bridgeExactClr.classList.add('visible');
+    } else {
+      bridgeExactEl.value = '';
+      bridgeExactEl.classList.remove('active');
+      bridgeExactClr.classList.remove('visible');
+    }
+
+    // Sort buttons
+    sortBtns.forEach(b => {
+      b.classList.remove('active');
+      b.textContent = sortLabels[b.dataset.key];
+    });
+    const activeBtn = [...sortBtns].find(b => b.dataset.key === state.sortKey);
+    if (activeBtn) {
+      activeBtn.classList.add('active');
+      activeBtn.textContent = sortLabels[state.sortKey] + (state.sortDir === 1 ? ' ↑' : ' ↓');
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  //  Init
+  // ─────────────────────────────────────────────
+  loadState();
+  syncUI();
+  render();
+</script>
+</body>
+</html>

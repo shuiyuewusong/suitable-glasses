@@ -1,0 +1,9 @@
+{
+  "name": "suitable-glasses",
+  "version": "1.0.0",
+  "description": "眼镜参数计算器 — 根据瞳距计算最佳镜片宽度与鼻梁间距组合",
+  "scripts": {
+    "start": "npx --yes serve ."
+  },
+  "private": true
+}
