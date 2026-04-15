@@ -2,33 +2,58 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+  <!-- 禁止移动端自动缩放，保证布局不被浏览器强制放大 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>适镜计算器 · Suitable Glasses</title>
   <style>
+    /* ══════════════════════════════════════════
+       全局 CSS 变量
+       统一管理颜色、间距等设计 token，修改一处即可全局生效
+    ══════════════════════════════════════════ */
     :root {
+      /* 主色（蓝色系） */
       --primary: #2563eb;
-      --primary-light: #dbeafe;
-      --primary-dark: #1d4ed8;
+      --primary-light: #dbeafe;   /* 浅蓝背景，用于激活态 */
+      --primary-dark: #1d4ed8;    /* 深蓝，用于 header 渐变终色 */
+
+      /* 评级颜色 — 极佳（绿）*/
       --excellent: #16a34a;
       --excellent-bg: #dcfce7;
+
+      /* 评级颜色 — 优秀（青）*/
       --good: #0891b2;
       --good-bg: #cffafe;
+
+      /* 评级颜色 — 可接受（橙）*/
       --acceptable: #d97706;
       --acceptable-bg: #fef3c7;
+
+      /* 评级颜色 — 不推荐（红）*/
       --poor: #dc2626;
       --poor-bg: #fee2e2;
+
+      /* 页面背景与组件背景 */
       --bg: #f1f5f9;
       --card-bg: #ffffff;
+
+      /* 边框与文字层级 */
       --border: #e2e8f0;
       --text: #1e293b;
       --text-muted: #64748b;
       --text-light: #94a3b8;
+
+      /* 最小可点击尺寸（iOS HIG 推荐 44px） */
       --tap-size: 44px;
+
+      /* 波轮选择器单个选项的高度与宽度 */
       --item-h: 40px;
+      --item-w: 40px;
     }
 
+    /* 盒模型重置：所有元素使用 border-box，清除默认间距 */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* 全局字体：优先使用系统 UI 字体，兼顾中英文 */
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
       background: var(--bg);
@@ -36,32 +61,38 @@
       min-height: 100vh;
       font-size: 14px;
       line-height: 1.5;
+      /* 防止 iOS Safari 在横屏时自动调整字号 */
       -webkit-text-size-adjust: 100%;
     }
 
+    /* 隐藏数字输入框的原生上下箭头（各浏览器兼容写法） */
     input[type="number"] { -moz-appearance: textfield; }
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
-    /* ─── Header ─── */
+    /* ─── 页头 ─── */
     header {
+      /* 蓝色渐变背景，135° 斜向 */
       background: linear-gradient(135deg, var(--primary), var(--primary-dark));
       color: white;
       padding: 20px 24px 24px;
     }
+    /* 页头内容区限制最大宽度并居中 */
     .header-inner { max-width: 1060px; margin: 0 auto; }
     header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
     header p  { font-size: 13px; opacity: 0.75; margin-top: 4px; }
 
-    /* ─── Layout ─── */
+    /* ─── 页面主容器 ─── */
     .container {
       max-width: 1060px;
       margin: 0 auto;
       padding: 20px 16px 40px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 14px;   /* 各卡片之间的间距 */
     }
+
+    /* 通用卡片组件：白色背景 + 圆角 + 细阴影 */
     .card {
       background: var(--card-bg);
       border: 1px solid var(--border);
@@ -69,6 +100,8 @@
       padding: 20px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.04);
     }
+
+    /* 卡片内的小标题（全大写，字母间距宽） */
     .card-title {
       font-size: 11px;
       font-weight: 700;
@@ -78,7 +111,7 @@
       margin-bottom: 14px;
     }
 
-    /* ─── Formula Box ─── */
+    /* ─── 公式展示框 ─── */
     .formula-box {
       background: var(--primary-light);
       border: 1px solid #bfdbfe;
@@ -88,9 +121,12 @@
       align-items: flex-start;
       gap: 12px;
     }
+    /* 公式左侧图标 */
     .formula-icon { font-size: 22px; line-height: 1; margin-top: 2px; flex-shrink: 0; }
     .formula-content strong { color: var(--primary-dark); font-size: 13px; }
+    /* 公式行容器，允许换行 */
     .formula-eqs { margin: 6px 0 4px; display: flex; flex-wrap: wrap; gap: 6px 20px; }
+    /* 单条公式，使用等宽字体突出数学表达式 */
     .formula-eq {
       font-family: 'Courier New', 'Consolas', monospace;
       font-size: 14px; font-weight: 700;
@@ -98,25 +134,30 @@
     }
     .formula-content p { font-size: 12px; color: var(--text-muted); }
 
-    /* ─── PD Input ─── */
+    /* ─── 瞳距输入区 ─── */
+    /* 大字显示 + 滑块横排，在窄屏自动换列 */
     .pd-row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    /* 瞳距大字显示：固定宽度防止数值变化时布局抖动，tabular-nums 等宽数字 */
     .pd-display {
       font-size: 52px; font-weight: 800; color: var(--primary);
       line-height: 1; width: 168px; flex-shrink: 0;
       font-variant-numeric: tabular-nums;
     }
     .pd-display span { font-size: 18px; font-weight: 400; color: var(--text-muted); }
+    /* 滑块容器，弹性伸缩 */
     .pd-slider-wrap { flex: 1; min-width: 220px; }
 
-    /* ─── Sliders ─── */
+    /* ─── 滑块（range input）统一样式 ─── */
     input[type="range"] {
       -webkit-appearance: none;
       width: 100%; height: 6px;
       border-radius: 3px;
       background: var(--border);
       outline: none; cursor: pointer;
+      /* 移动端只允许水平拖动，避免触发页面纵向滚动 */
       touch-action: pan-x;
     }
+    /* 滑块圆形拖动手柄 */
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       width: 22px; height: 22px;
@@ -126,19 +167,24 @@
       box-shadow: 0 2px 8px rgba(37,99,235,0.4);
       transition: transform 0.1s;
     }
+    /* 按下时放大手柄，提供视觉反馈 */
     input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
+    /* 滑块下方的刻度标签 */
     .slider-labels {
       display: flex; justify-content: space-between;
       font-size: 11px; color: var(--text-light); margin-top: 5px;
     }
+    /* 精确输入行：标签 + 数字框 + 单位 */
     .pd-manual { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
     .pd-manual label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
 
+    /* 数字输入框（用于瞳距精确输入） */
     .number-input {
       padding: 8px 10px;
       border: 2px solid var(--border);
       border-radius: 8px;
+      /* font-size 保持 16px，防止 iOS Safari 自动放大输入框 */
       font-size: 16px; text-align: center;
       outline: none; width: 84px; height: var(--tap-size);
       transition: border-color 0.15s;
@@ -147,27 +193,33 @@
     }
     .number-input:focus { border-color: var(--primary); }
 
-    /* ─── Filters ─── */
+    /* ─── 筛选条件区域 ─── */
+    /* 两列网格布局，小屏改为单列（见响应式部分） */
     .filter-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px 28px;
     }
+    /* 每个筛选项的小标题 */
     .filter-label {
       font-size: 12px; font-weight: 600; color: var(--text-muted);
       margin-bottom: 10px; display: block;
     }
 
-    /* ─── Decentration Slider ─── */
+    /* ─── 移心量上限滑块区 ─── */
+    /* 滑块 + 右侧数值徽章横排 */
     .dec-slider-row { display: flex; align-items: center; gap: 12px; }
     .dec-slider-wrap { flex: 1; min-width: 0; }
+    /* 当前移心量上限的彩色数值徽章 */
     .dec-value-badge {
       min-width: 68px; padding: 6px 10px;
       border-radius: 8px; font-size: 14px; font-weight: 700;
       text-align: center; transition: background 0.2s, color 0.2s;
       flex-shrink: 0;
     }
+    /* 徽章下方的文字提示 */
     .dec-hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+    /* 移心量评级大字状态标签（极佳 / 优秀 / 可接受 / 不推荐） */
     .dec-status {
       display: inline-block; margin-top: 8px;
       padding: 5px 16px; border-radius: 20px;
@@ -175,95 +227,87 @@
       transition: background 0.25s, color 0.25s;
     }
 
-    /* ════════════════════════════════
-       Wheel Picker
-    ════════════════════════════════ */
+    /* ══════════════════════════════════════════
+       横向波轮选择器
+       原理：水平 overflow-x scroll + scroll-snap，
+       用 CSS mask 做边缘渐隐，中心指示线标记选中项
+    ══════════════════════════════════════════ */
+    /* 最小范围行：两个波轮 + 分隔符 + 单位 */
     .wheel-range-row {
       display: flex;
       align-items: center;
       gap: 6px;
     }
 
-    /* Outer container: clips the scroll and shows gradient */
+    /* 波轮外容器：固定尺寸（宽 = 3 个选项，高 = 1 个选项），隐藏溢出 */
     .wheel-wrap {
       position: relative;
-      width: 64px;
-      height: calc(var(--item-h) * 3);   /* 3 visible rows */
+      height: var(--item-h);
+      width: calc(var(--item-w) * 3);   /* 同时展示 3 个选项：左、中（选中）、右 */
       overflow: hidden;
       border: 1.5px solid var(--border);
       border-radius: 10px;
       background: var(--card-bg);
       flex-shrink: 0;
-      cursor: ns-resize;
+      cursor: ew-resize;   /* 提示用户可左右拖动 */
     }
 
-    /* Scrollable list */
+    /* 可横向滚动的选项列表 */
     .wp-items {
+      display: flex;
       height: 100%;
-      overflow-y: scroll;
-      scroll-snap-type: y mandatory;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-      overscroll-behavior: contain;
+      overflow-x: scroll;
+      scroll-snap-type: x mandatory;         /* 强制对齐到最近的 snap 点 */
+      -webkit-overflow-scrolling: touch;      /* iOS 惯性滚动 */
+      scrollbar-width: none;                  /* Firefox 隐藏滚动条 */
+      overscroll-behavior: contain;           /* 防止滚动穿透到父容器 */
+      /* 左右 30% 渐隐，实现两端淡出效果，同时不影响点击事件 */
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, black 30%, black 70%, transparent 100%);
+      mask-image: linear-gradient(to right, transparent 0%, black 30%, black 70%, transparent 100%);
     }
+    /* Chrome/Safari 隐藏滚动条 */
     .wp-items::-webkit-scrollbar { display: none; }
 
-    /* Padding sentinel items for centering first/last real item */
-    .wp-pad { height: var(--item-h); flex-shrink: 0; }
+    /* 左右填充占位块：使第一项和最后一项也能滚动到正中心 */
+    .wp-pad { width: var(--item-w); flex-shrink: 0; }
 
-    /* Each value row */
+    /* 每个数值选项格 */
     .wp-item {
-      height: var(--item-h);
+      width: var(--item-w);
+      height: 100%;
+      flex-shrink: 0;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 17px;
       font-weight: 600;
-      color: #c8d3e0;
-      scroll-snap-align: center;
+      color: #c8d3e0;            /* 未选中态：浅灰蓝 */
+      scroll-snap-align: center; /* 滚动停止时对齐到容器正中 */
       cursor: pointer;
       user-select: none;
       transition: color 0.12s, font-size 0.12s, font-weight 0.12s;
     }
+    /* 选中态：主题蓝 + 字号稍大，视觉突出 */
     .wp-item.selected {
       color: var(--primary);
       font-size: 19px;
       font-weight: 800;
     }
 
-    /* Top & bottom gradient fades */
-    .wheel-wrap::before,
-    .wheel-wrap::after {
-      content: '';
-      position: absolute;
-      left: 0; right: 0;
-      height: var(--item-h);
-      pointer-events: none;
-      z-index: 3;
-    }
-    .wheel-wrap::before {
-      top: 0;
-      background: linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-    }
-    .wheel-wrap::after {
-      bottom: 0;
-      background: linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-    }
-
-    /* Center selection indicator lines */
+    /* 中心选中指示线：两条竖线标记中间格的左右边界 */
     .wp-indicator {
       position: absolute;
-      top: var(--item-h);
-      left: 0; right: 0;
-      height: var(--item-h);
-      border-top: 1.5px solid var(--primary);
-      border-bottom: 1.5px solid var(--primary);
-      pointer-events: none;
+      top: 0; bottom: 0;
+      left: var(--item-w);          /* 从第二格（中心格）的左边开始 */
+      width: var(--item-w);         /* 宽度等于一格 */
+      border-left: 1.5px solid var(--primary);
+      border-right: 1.5px solid var(--primary);
+      pointer-events: none;         /* 不拦截点击事件 */
       z-index: 2;
       opacity: 0.35;
     }
 
-    /* Range label / unit text */
+    /* 波轮行内的分隔符"—"与单位"mm" */
     .wheel-sep {
       font-size: 15px; font-weight: 500; color: var(--text-muted);
       flex-shrink: 0;
@@ -273,54 +317,91 @@
       flex-shrink: 0;
     }
 
-    /* ─── Exact input row ─── */
-    .lens-bridge-wrap { display: flex; flex-direction: column; gap: 10px; }
+    /* ─── 精确值输入区 ─── */
+    /* 波轮下方区域，flex 纵向排列 */
+    .lens-bridge-wrap { display: flex; flex-direction: column; gap: 0; }
+    /* 精确值行：标签 + 胶囊输入组，顶部分割线与波轮区隔开 */
     .exact-row {
-      display: flex; align-items: center; gap: 6px;
-      font-size: 12px; color: var(--text-muted);
+      display: flex; align-items: center; gap: 10px;
+      padding-top: 10px; margin-top: 10px;
+      border-top: 1px solid var(--border);
     }
+    /* "精确值"小标签 */
+    .exact-label {
+      font-size: 11px; font-weight: 700; color: var(--text-light);
+      letter-spacing: 0.5px; white-space: nowrap; flex-shrink: 0;
+    }
+    /* 胶囊形输入组：输入框 + 单位 + 清除按钮合为一体 */
+    .exact-group {
+      display: flex; align-items: center;
+      height: 36px;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      background: white; overflow: hidden;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    /* 聚焦时显示主色边框 */
+    .exact-group:focus-within { border-color: var(--primary); }
+    /* 有效输入时：蓝色边框 + 浅蓝背景 */
+    .exact-group.active { border-color: var(--primary); background: var(--primary-light); }
+    /* 胶囊内的数字输入框 */
     .exact-input {
-      width: 66px; height: var(--tap-size); padding: 0 8px;
-      border: 1.5px solid var(--border); border-radius: 8px;
-      font-size: 16px; text-align: center;
-      outline: none; font-weight: 600; color: var(--text);
-      transition: border-color 0.15s;
+      width: 56px; height: 100%; border: none; outline: none;
+      background: transparent;
+      /* 保持 16px 以上，防止 iOS Safari 聚焦时自动放大页面 */
+      font-size: 16px; font-weight: 700;
+      text-align: center; color: var(--text); padding: 0 6px;
       -webkit-tap-highlight-color: transparent;
     }
-    .exact-input:focus  { border-color: var(--primary); }
-    .exact-input.active { border-color: var(--primary); background: var(--primary-light); }
-    .exact-clear {
-      font-size: 12px; color: var(--primary);
-      cursor: pointer; text-decoration: underline;
-      display: none; padding: 4px 2px;
+    /* 胶囊内的单位文字 */
+    .exact-unit {
+      font-size: 12px; font-weight: 600; color: var(--text-muted);
+      padding-right: 8px; flex-shrink: 0;
+    }
+    /* 清除按钮：默认隐藏，有值时以 flex 圆形按钮显示 */
+    .exact-clear-btn {
+      display: none; align-items: center; justify-content: center;
+      width: 24px; height: 24px; margin-right: 5px;
+      border-radius: 50%; border: none; flex-shrink: 0;
+      background: var(--border); color: var(--text-muted);
+      font-size: 14px; line-height: 1; cursor: pointer;
+      transition: background 0.15s, color 0.15s;
       -webkit-tap-highlight-color: transparent;
     }
-    .exact-clear.visible { display: inline; }
+    /* 悬停变红，提示危险操作 */
+    .exact-clear-btn:hover { background: #fecaca; color: var(--poor); }
+    /* 有值时显示清除按钮 */
+    .exact-clear-btn.visible { display: flex; }
 
-    /* ─── Results ─── */
+    /* ─── 结果区顶部：计数 + 图例 ─── */
     .results-top {
       display: flex; align-items: center; justify-content: space-between;
       flex-wrap: wrap; gap: 10px; margin-bottom: 14px;
     }
     .result-count { font-size: 15px; font-weight: 600; }
+    /* 组合数量大字 */
     .result-count .num { font-size: 22px; font-weight: 800; color: var(--primary); margin-right: 2px; }
 
+    /* 评级图例 */
     .legend { display: flex; gap: 10px; flex-wrap: wrap; }
     .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); }
+    /* 图例小圆点 */
     .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
+    /* ─── 排序按钮栏 ─── */
     .sort-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 14px; }
     .sort-bar-label {
       font-size: 11px; color: var(--text-muted); font-weight: 600;
       text-transform: uppercase; letter-spacing: 0.5px;
       white-space: nowrap; flex-shrink: 0;
     }
+    /* 按钮容器：可横向滚动，适配小屏 */
     .sort-btn-wrap {
       display: flex; gap: 6px;
       overflow-x: auto; -webkit-overflow-scrolling: touch;
       padding-bottom: 2px; flex: 1;
     }
     .sort-btn-wrap::-webkit-scrollbar { display: none; }
+    /* 单个排序按钮 */
     .sort-btn {
       padding: 6px 12px; height: 34px;
       border: 1.5px solid var(--border); border-radius: 6px;
@@ -331,12 +412,13 @@
       -webkit-tap-highlight-color: transparent;
     }
     .sort-btn:hover { border-color: var(--primary); color: var(--primary); }
+    /* 当前激活排序列高亮 */
     .sort-btn.active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); font-weight: 600; }
 
-    /* ─── Table ─── */
+    /* ─── 结果数据表格 ─── */
     .table-wrapper {
       border-radius: 8px; border: 1px solid var(--border);
-      overflow: hidden; overflow-x: auto;
+      overflow: hidden; overflow-x: auto;  /* 列多时可横向滚动 */
       -webkit-overflow-scrolling: touch;
     }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -349,34 +431,45 @@
     tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.1s; }
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: #f8fafc; }
+    /* 移心量最小（最优）的行：绿色背景高亮 */
     tbody tr.top-row { background: #f0fdf4; }
     tbody tr.top-row:hover { background: #dcfce7; }
     td { padding: 10px 14px; white-space: nowrap; }
 
+    /* 序号列，等宽数字 */
     .rank { font-size: 11px; color: var(--text-light); font-variant-numeric: tabular-nums; width: 28px; display: inline-block; text-align: right; }
+    /* 最优行序号加粗绿色 */
     .rank.top { font-weight: 700; color: var(--excellent); }
 
+    /* 评级徽章 */
     .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; }
     .badge-excellent  { background: var(--excellent-bg);  color: var(--excellent); }
     .badge-good       { background: var(--good-bg);       color: var(--good); }
     .badge-acceptable { background: var(--acceptable-bg); color: var(--acceptable); }
     .badge-poor       { background: var(--poor-bg);       color: var(--poor); }
 
+    /* 移心量单元格：进度条 + 数值 + 单位 + 星标横排 */
     .d-cell { display: flex; align-items: center; gap: 8px; }
+    /* 移心量小进度条 */
     .d-bar-track { width: 52px; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; flex-shrink: 0; }
     .d-bar-fill  { height: 100%; border-radius: 3px; }
+    /* 移心量数值，等宽数字 */
     .d-value { font-weight: 700; font-variant-numeric: tabular-nums; min-width: 34px; }
+    /* 外侧边缘距数值 */
     .outer-edge { font-weight: 600; font-variant-numeric: tabular-nums; }
+    /* 最优行星标图标 */
     .star-icon { color: var(--excellent); font-size: 12px; margin-left: 2px; }
 
+    /* 无结果时的空态提示 */
     .empty-state { text-align: center; padding: 52px 24px; color: var(--text-muted); }
     .empty-state .empty-icon { font-size: 36px; margin-bottom: 12px; }
     .empty-state p { font-size: 15px; font-weight: 500; }
     .empty-state small { font-size: 12px; color: var(--text-light); display: block; margin-top: 6px; }
 
-    /* ═══════════════════════════════════
-       Responsive — Mobile  ≤ 600px
-    ═══════════════════════════════════ */
+    /* ══════════════════════════════════════════
+       响应式 — 手机端 ≤ 600px
+       调整字号、间距、布局以适配小屏
+    ══════════════════════════════════════════ */
     @media (max-width: 600px) {
       header { padding: 14px 16px 18px; }
       header h1 { font-size: 18px; }
@@ -387,49 +480,61 @@
 
       .formula-box { padding: 12px 14px; gap: 10px; }
       .formula-icon { font-size: 18px; }
+      /* 公式在小屏上竖向排列 */
       .formula-eqs { flex-direction: column; gap: 4px; }
       .formula-eq { font-size: 12px; }
       .formula-content p { font-size: 11px; }
 
+      /* 瞳距区改为纵向排列，大字居中 */
       .pd-row { flex-direction: column; align-items: stretch; gap: 14px; }
       .pd-display { font-size: 52px; width: 100%; text-align: center; }
       .pd-slider-wrap { min-width: unset; }
       .pd-manual { justify-content: center; }
 
+      /* 滑块在手机上手柄更大，更易拖动 */
       input[type="range"] { height: 8px; }
       input[type="range"]::-webkit-slider-thumb { width: 30px; height: 30px; }
 
+      /* 筛选区改为单列 */
       .filter-grid { grid-template-columns: 1fr; gap: 18px; }
 
       .dec-value-badge { font-size: 15px; min-width: 74px; padding: 7px 12px; }
 
+      /* 结果顶部改为纵向 */
       .results-top { flex-direction: column; align-items: flex-start; gap: 8px; }
       .result-count .num { font-size: 20px; }
 
       .legend { gap: 8px; }
       .legend-item { font-size: 10px; gap: 4px; }
 
+      /* 排序标签在小屏隐藏，节省空间 */
       .sort-bar-label { display: none; }
 
       thead th { padding: 8px 10px; font-size: 10px; }
       td { padding: 9px 10px; font-size: 12px; }
+      /* 小屏隐藏进度条，节省列宽 */
       .d-bar-track { display: none; }
 
-      /* Wheel: slightly wider on mobile */
-      .wheel-wrap { width: 72px; }
+      /* 波轮在小屏使用较窄选项，整体更紧凑 */
+      :root { --item-w: 36px; }
     }
 
+    /* 更小屏（如 iPhone SE）的额外微调 */
     @media (max-width: 390px) {
       .pd-display { font-size: 44px; }
       .dec-status { font-size: 16px; padding: 4px 12px; }
       .card { padding: 14px; }
       header h1 { font-size: 17px; }
-      .wheel-wrap { width: 64px; }
+      /* 进一步缩小波轮选项宽度 */
+      :root { --item-w: 34px; }
     }
   </style>
 </head>
 <body>
 
+<!-- ═══════════════════════════════════════
+     页头：标题 + 副标题说明
+═══════════════════════════════════════ -->
 <header>
   <div class="header-inner">
     <h1>适镜计算器</h1>
@@ -439,7 +544,7 @@
 
 <div class="container">
 
-  <!-- Formula -->
+  <!-- 计算公式说明框 -->
   <div class="formula-box">
     <div class="formula-icon">📐</div>
     <div class="formula-content">
@@ -452,14 +557,20 @@
     </div>
   </div>
 
-  <!-- PD Input -->
+  <!-- ═══════════════════════════════════════
+       瞳距输入卡片
+       支持滑块拖动 + 数字精确输入两种方式
+  ═══════════════════════════════════════ -->
   <div class="card">
     <div class="card-title">瞳距 (PD — Pupillary Distance)</div>
     <div class="pd-row">
+      <!-- 瞳距大字展示，固定宽度防止布局跳动 -->
       <div class="pd-display" id="pd-display">64.0 <span>mm</span></div>
       <div class="pd-slider-wrap">
+        <!-- 瞳距滑块：范围 52–76mm，步进 0.5mm -->
         <input type="range" id="pd-slider" min="52" max="76" value="64" step="0.5">
         <div class="slider-labels"><span>52 mm</span><span>64 mm</span><span>76 mm</span></div>
+        <!-- 精确数字输入，与滑块双向同步 -->
         <div class="pd-manual">
           <label for="pd-number">精确输入</label>
           <input class="number-input" type="number" id="pd-number"
@@ -471,47 +582,58 @@
     </div>
   </div>
 
-  <!-- Filters -->
+  <!-- ═══════════════════════════════════════
+       筛选条件卡片
+       四格网格：移心量上限、镜片宽度、鼻梁间距、框架瞳距信息
+  ═══════════════════════════════════════ -->
   <div class="card">
     <div class="card-title">筛选条件</div>
     <div class="filter-grid">
 
-      <!-- Decentration slider -->
+      <!-- 移心量上限：滑块控制最大可接受移心量，影响结果行数 -->
       <div>
         <span class="filter-label">移心量上限</span>
         <div class="dec-slider-row">
           <div class="dec-slider-wrap">
+            <!-- 移心量滑块：范围 0–8mm，步进 0.5mm -->
             <input type="range" id="dec-slider" min="0" max="8" value="3" step="0.5">
             <div class="slider-labels"><span>0</span><span>4 mm</span><span>8 mm</span></div>
           </div>
+          <!-- 当前移心量数值徽章，颜色随评级变化 -->
           <div class="dec-value-badge" id="dec-badge">3.0 mm</div>
         </div>
+        <!-- 文字说明当前过滤阈值 -->
         <div class="dec-hint" id="dec-hint">显示移心量 ≤ 3.0mm 的组合</div>
+        <!-- 评级状态大字标签 -->
         <div class="dec-status" id="dec-status">优秀</div>
       </div>
 
-      <!-- Lens width -->
+      <!-- 镜片宽度 A 值范围：波轮选择 min–max + 精确值可选输入 -->
       <div>
         <span class="filter-label">镜片宽度 A 值</span>
         <div class="lens-bridge-wrap">
+          <!-- 两个波轮分别控制最小值和最大值 -->
           <div class="wheel-range-row">
             <div class="wheel-wrap" id="wheel-lens-min"></div>
             <span class="wheel-sep">—</span>
             <div class="wheel-wrap" id="wheel-lens-max"></div>
             <span class="wheel-unit">mm</span>
           </div>
+          <!-- 精确值输入：输入后覆盖范围筛选，只保留该值 -->
           <div class="exact-row">
-            <span>精确值</span>
-            <input class="exact-input" type="number" id="lens-exact"
-                   min="35" max="60" placeholder="—"
-                   inputmode="numeric" autocomplete="off">
-            <span>mm</span>
-            <span class="exact-clear" id="lens-exact-clear" onclick="clearExact('lens')">清除</span>
+            <span class="exact-label">精确值</span>
+            <div class="exact-group" id="lens-exact-group">
+              <input class="exact-input" type="number" id="lens-exact"
+                     min="35" max="60" placeholder="—"
+                     inputmode="numeric" autocomplete="off">
+              <span class="exact-unit">mm</span>
+              <button class="exact-clear-btn" id="lens-exact-clear" onclick="clearExact('lens')">×</button>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Bridge width -->
+      <!-- 鼻梁间距 DBL 范围：同上，波轮 + 精确值 -->
       <div>
         <span class="filter-label">鼻梁间距 DBL</span>
         <div class="lens-bridge-wrap">
@@ -522,17 +644,19 @@
             <span class="wheel-unit">mm</span>
           </div>
           <div class="exact-row">
-            <span>精确值</span>
-            <input class="exact-input" type="number" id="bridge-exact"
-                   min="12" max="25" placeholder="—"
-                   inputmode="numeric" autocomplete="off">
-            <span>mm</span>
-            <span class="exact-clear" id="bridge-exact-clear" onclick="clearExact('bridge')">清除</span>
+            <span class="exact-label">精确值</span>
+            <div class="exact-group" id="bridge-exact-group">
+              <input class="exact-input" type="number" id="bridge-exact"
+                     min="12" max="25" placeholder="—"
+                     inputmode="numeric" autocomplete="off">
+              <span class="exact-unit">mm</span>
+              <button class="exact-clear-btn" id="bridge-exact-clear" onclick="clearExact('bridge')">×</button>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Frame PD info -->
+      <!-- 匹配的框架瞳距范围：根据当前筛选结果动态计算并展示 -->
       <div>
         <span class="filter-label">匹配的框架瞳距范围</span>
         <div id="frame-pd-info" style="font-size:14px;padding-top:6px;color:var(--text-muted)">—</div>
@@ -541,8 +665,12 @@
     </div>
   </div>
 
-  <!-- Results -->
+  <!-- ═══════════════════════════════════════
+       结果展示卡片
+       包含：组合计数、图例、排序栏、数据表格、空态提示
+  ═══════════════════════════════════════ -->
   <div class="card">
+    <!-- 顶部：组合计数 + 移心量评级图例 -->
     <div class="results-top">
       <div class="result-count">
         共 <span class="num" id="result-count">0</span> 种组合
@@ -555,6 +683,7 @@
       </div>
     </div>
 
+    <!-- 排序按钮栏：点击切换排序列，再次点击翻转升/降序 -->
     <div class="sort-bar">
       <span class="sort-bar-label">排序</span>
       <div class="sort-btn-wrap">
@@ -566,6 +695,7 @@
       </div>
     </div>
 
+    <!-- 数据表格容器（无结果时隐藏） -->
     <div class="table-wrapper" id="table-wrapper">
       <table>
         <thead>
@@ -579,16 +709,19 @@
             <th>评级</th>
           </tr>
         </thead>
+        <!-- 结果行由 JS render() 动态生成 -->
         <tbody id="results-body"></tbody>
       </table>
     </div>
 
+    <!-- 空态提示（无符合条件组合时显示） -->
     <div id="empty-state" class="empty-state" style="display:none">
       <div class="empty-icon">🔍</div>
       <p>没有符合条件的组合</p>
       <small>请放宽移心量上限，或调整镜片 / 鼻梁范围</small>
     </div>
 
+    <!-- 外侧边缘距的脚注说明 -->
     <div style="margin-top:10px;font-size:11px;color:var(--text-light)">
       ① 外侧边缘距 = 镜片宽度 ÷ 2 + 移心量，即视觉中心到镜片颞侧（外侧）边缘的距离，值越大高度近视外侧镜片越厚
     </div>
@@ -597,25 +730,32 @@
 </div>
 
 <script>
-  // ─────────────────────────────────────────────
-  //  State
-  // ─────────────────────────────────────────────
+  // ═══════════════════════════════════════════════
+  //  全局状态对象
+  //  保存所有筛选条件和排序参数，是唯一数据来源
+  // ═══════════════════════════════════════════════
   const state = {
-    pd:          64,
-    maxDec:      3,
-    lensMin:     35,
-    lensMax:     60,
-    lensExact:   null,
-    bridgeMin:   12,
-    bridgeMax:   25,
-    bridgeExact: null,
-    sortKey:    'd',
-    sortDir:     1,
+    pd:          64,    // 瞳距（mm），范围 52–76，步进 0.5
+    maxDec:      3,     // 移心量上限（mm），超过此值的组合被过滤掉
+    lensMin:     35,    // 镜片宽度下限（mm）
+    lensMax:     60,    // 镜片宽度上限（mm）
+    lensExact:   null,  // 精确镜片宽度（非 null 时覆盖 min/max 范围）
+    bridgeMin:   12,    // 鼻梁间距下限（mm）
+    bridgeMax:   25,    // 鼻梁间距上限（mm）
+    bridgeExact: null,  // 精确鼻梁间距（非 null 时覆盖 min/max 范围）
+    sortKey:    'd',    // 当前排序字段：'d' | 'outer' | 'lens' | 'bridge' | 'framePD'
+    sortDir:     1,     // 排序方向：1 = 升序，-1 = 降序
   };
 
-  // ─────────────────────────────────────────────
-  //  Rating helpers
-  // ─────────────────────────────────────────────
+  // ═══════════════════════════════════════════════
+  //  评级辅助函数
+  // ═══════════════════════════════════════════════
+
+  /**
+   * 根据移心量（mm）返回评级信息（用于表格徽章）
+   * @param {number} d - 移心量
+   * @returns {{ label: string, cls: string, color: string }}
+   */
   function rating(d) {
     if (d <= 2)  return { label: '极佳',   cls: 'badge-excellent', color: '#16a34a' };
     if (d <= 3)  return { label: '优秀',   cls: 'badge-good',      color: '#0891b2' };
@@ -623,6 +763,11 @@
     return       { label: '不推荐',        cls: 'badge-poor',      color: '#dc2626' };
   }
 
+  /**
+   * 根据移心量上限返回移心量滑块徽章的配色和文字
+   * @param {number} v - 移心量上限
+   * @returns {{ bg: string, color: string, hint: string }}
+   */
   function decBadgeStyle(v) {
     if (v <= 2) return { bg: '#dcfce7', color: '#16a34a', hint: '极佳' };
     if (v <= 3) return { bg: '#cffafe', color: '#0891b2', hint: '优秀' };
@@ -630,74 +775,109 @@
     return       { bg: '#fee2e2', color: '#dc2626', hint: '不推荐' };
   }
 
-  // ─────────────────────────────────────────────
-  //  Wheel Picker
-  // ─────────────────────────────────────────────
-  const ITEM_H = 40; // matches CSS --item-h
+  // ═══════════════════════════════════════════════
+  //  横向波轮选择器
+  // ═══════════════════════════════════════════════
 
   /**
-   * Create a scroll-wheel picker inside `wrapEl`.
-   * @param {HTMLElement} wrapEl
-   * @param {number} min
-   * @param {number} max
-   * @param {number} initValue
-   * @param {function} onChange  called with new value when settled
+   * 从 CSS 变量 --item-w 读取实际渲染宽度（px）
+   * 必须动态读取，因为响应式断点会改变该值
+   * @returns {number}
+   */
+  function getItemW() {
+    return parseInt(getComputedStyle(document.documentElement).getPropertyValue('--item-w')) || 40;
+  }
+
+  /**
+   * 在指定容器内创建一个横向波轮选择器
+   *
+   * 原理：
+   *   - flex 横向排列选项 + overflow-x scroll + scroll-snap-type: x mandatory
+   *   - 左右各加一个等宽占位块，使首尾选项也能滚到正中
+   *   - scrollLeft = (value - min) * itemW 对应某个值居中
+   *   - scrollend / debounce 检测滚动停止后读取当前值并触发 onChange
+   *
+   * @param {HTMLElement} wrapEl    波轮外容器 DOM 节点
+   * @param {number}      min       最小可选值
+   * @param {number}      max       最大可选值
+   * @param {number}      initValue 初始值
+   * @param {function}    onChange  值变化时的回调，参数为新值
    * @returns {{ setValue(v: number): void }}
    */
   function createWheel(wrapEl, min, max, initValue, onChange) {
-    // Build DOM
+    // ── 构建 DOM ──────────────────────────────────
     const itemsEl = document.createElement('div');
     itemsEl.className = 'wp-items';
 
-    // Top padding sentinel
+    // 左侧占位块：使最小值也能滚动到容器正中心
     const padTop = document.createElement('div');
     padTop.className = 'wp-pad';
     itemsEl.appendChild(padTop);
 
-    // Value items
+    // 逐个创建数值选项（从 min 到 max 的每个整数）
     for (let v = min; v <= max; v++) {
       const el = document.createElement('div');
       el.className = 'wp-item';
-      el.dataset.v = v;
+      el.dataset.v = v;       // 记录数值，点击时读取
       el.textContent = v;
       itemsEl.appendChild(el);
     }
 
-    // Bottom padding sentinel
+    // 右侧占位块：使最大值也能滚动到容器正中心
     const padBot = document.createElement('div');
     padBot.className = 'wp-pad';
     itemsEl.appendChild(padBot);
 
-    // Selection indicator bar
+    // 中心选中指示线（两条竖线，覆盖在中间格上方）
     const indicator = document.createElement('div');
     indicator.className = 'wp-indicator';
 
     wrapEl.appendChild(itemsEl);
     wrapEl.appendChild(indicator);
 
+    // 记录当前选中值，避免重复触发 onChange
     let currentValue = initValue;
 
-    // Update visual highlight
+    // ── 高亮选中项 ────────────────────────────────
+    /**
+     * 给指定值的选项加上 .selected 样式，其余移除
+     * @param {number} v
+     */
     function highlight(v) {
       itemsEl.querySelectorAll('.wp-item').forEach(el => {
         el.classList.toggle('selected', +el.dataset.v === v);
       });
     }
 
-    // Read settled value from scrollTop
+    // ── 从 scrollLeft 读取当前停靠的值 ────────────
+    /**
+     * 根据当前 scrollLeft 计算对应的整数值
+     * 公式：index = round(scrollLeft / itemW)，value = min + index
+     * @returns {number}
+     */
     function readValue() {
-      const idx = Math.round(itemsEl.scrollTop / ITEM_H);
+      const itemW = getItemW();
+      const idx = Math.round(itemsEl.scrollLeft / itemW);
+      // 钳制在 [min, max] 范围内，防止越界
       return min + Math.max(0, Math.min(max - min, idx));
     }
 
-    // Called when scrolling settles
+    // ── 滚动停止后的处理 ──────────────────────────
+    /**
+     * 每次滚动停止时调用：
+     *   1. 读取当前值
+     *   2. 微校正 scrollLeft 到精确 snap 位置
+     *   3. 若值有变化，更新高亮并调用 onChange
+     */
     function onSettle() {
       const v = readValue();
-      // Ensure exact snap position
-      const targetTop = (v - min) * ITEM_H;
-      if (Math.abs(itemsEl.scrollTop - targetTop) > 0.5) {
-        itemsEl.scrollTop = targetTop;
+      // 确保 scrollLeft 精确对齐到 snap 点（消除亚像素误差）
+      const itemW = getItemW();
+      const targetLeft = (v - min) * itemW;
+      if (Math.abs(itemsEl.scrollLeft - targetLeft) > 0.5) {
+        itemsEl.scrollLeft = targetLeft;
       }
+      // 值发生变化才触发回调，避免重复通知
       if (v !== currentValue) {
         currentValue = v;
         highlight(v);
@@ -705,7 +885,8 @@
       }
     }
 
-    // Use native scrollend if available, else debounced scroll
+    // ── 滚动事件监听 ──────────────────────────────
+    // 优先使用原生 scrollend（现代浏览器），回退到 160ms 防抖
     if ('onscrollend' in itemsEl) {
       itemsEl.addEventListener('scrollend', onSettle);
     } else {
@@ -716,92 +897,112 @@
       }, { passive: true });
     }
 
-    // Click on non-center item to jump to it
+    // ── 点击非中心选项直接跳转 ────────────────────
     itemsEl.addEventListener('click', e => {
       const item = e.target.closest('.wp-item');
       if (!item) return;
       const v = +item.dataset.v;
+      // 只在点击非当前值时响应，避免重复触发
       if (v !== currentValue) {
         setValue(v);
         onChange(v);
       }
     });
 
-    // Programmatic value setter
+    // ── 程序化设值 ────────────────────────────────
+    /**
+     * 将波轮滚动到指定值（对外暴露的接口）
+     * @param {number} v
+     */
     function setValue(v) {
       const clamped = Math.max(min, Math.min(max, v));
       currentValue = clamped;
-      itemsEl.scrollTop = (clamped - min) * ITEM_H;
+      // scrollLeft 对应值：(value - min) * 单项宽度
+      itemsEl.scrollLeft = (clamped - min) * getItemW();
       highlight(clamped);
     }
 
-    // Init
+    // ── 初始化 ────────────────────────────────────
+    // 先触发强制重排（读取 offsetWidth），确保 CSS 布局完成，
+    // 再设置 scrollLeft，避免浏览器因布局未就绪而忽略赋值
+    void wrapEl.offsetWidth;
     setValue(initValue);
 
     return { setValue };
   }
 
-  // ─────────────────────────────────────────────
-  //  Wheel picker instances (populated in syncUI)
-  // ─────────────────────────────────────────────
+  // ═══════════════════════════════════════════════
+  //  波轮实例集合（在 syncUI 中初始化）
+  // ═══════════════════════════════════════════════
   const wheels = {};
 
+  /**
+   * 创建四个波轮（镜片宽度 min/max、鼻梁间距 min/max）
+   * 约束规则：min 不能超过 max；调整 min 超过 max 时，max 跟随；反之亦然
+   */
   function initWheels() {
+    // 镜片宽度最小值波轮（范围 35–60mm）
     wheels.lensMin = createWheel(
       document.getElementById('wheel-lens-min'),
       35, 60, state.lensMin,
       v => {
-        state.lensMin = Math.min(v, state.lensMax);
-        if (v > state.lensMax) {
-          state.lensMax = v;
-          wheels.lensMax.setValue(v);
-        }
+        // 若新的最小值超过当前最大值，则同步拉高最大值
+        if (v > state.lensMax) { state.lensMax = v; wheels.lensMax.setValue(v); }
+        state.lensMin = v;
         render();
       }
     );
+
+    // 镜片宽度最大值波轮（范围 35–60mm）
     wheels.lensMax = createWheel(
       document.getElementById('wheel-lens-max'),
       35, 60, state.lensMax,
       v => {
-        state.lensMax = Math.max(v, state.lensMin);
-        if (v < state.lensMin) {
-          state.lensMin = v;
-          wheels.lensMin.setValue(v);
-        }
+        // 若新的最大值低于当前最小值，则同步拉低最小值
+        if (v < state.lensMin) { state.lensMin = v; wheels.lensMin.setValue(v); }
+        state.lensMax = v;
         render();
       }
     );
+
+    // 鼻梁间距最小值波轮（范围 12–25mm）
     wheels.bridgeMin = createWheel(
       document.getElementById('wheel-bridge-min'),
       12, 25, state.bridgeMin,
       v => {
-        state.bridgeMin = Math.min(v, state.bridgeMax);
-        if (v > state.bridgeMax) {
-          state.bridgeMax = v;
-          wheels.bridgeMax.setValue(v);
-        }
+        if (v > state.bridgeMax) { state.bridgeMax = v; wheels.bridgeMax.setValue(v); }
+        state.bridgeMin = v;
         render();
       }
     );
+
+    // 鼻梁间距最大值波轮（范围 12–25mm）
     wheels.bridgeMax = createWheel(
       document.getElementById('wheel-bridge-max'),
       12, 25, state.bridgeMax,
       v => {
-        state.bridgeMax = Math.max(v, state.bridgeMin);
-        if (v < state.bridgeMin) {
-          state.bridgeMin = v;
-          wheels.bridgeMin.setValue(v);
-        }
+        if (v < state.bridgeMin) { state.bridgeMin = v; wheels.bridgeMin.setValue(v); }
+        state.bridgeMax = v;
         render();
       }
     );
   }
 
-  // ─────────────────────────────────────────────
-  //  Calculate
-  // ─────────────────────────────────────────────
+  // ═══════════════════════════════════════════════
+  //  核心计算：遍历所有镜片×鼻梁组合，计算移心量
+  // ═══════════════════════════════════════════════
+  /**
+   * 根据当前 state 计算所有符合条件的组合
+   * 公式：
+   *   框架瞳距 = 镜片宽度 + 鼻梁间距
+   *   移心量 = (框架瞳距 - 瞳距) / 2
+   *   外侧边缘距 = 镜片宽度 / 2 + 移心量
+   * 过滤条件：移心量 >= 0（框架不能小于瞳距）且 <= maxDec
+   * @returns {Array<{lens, bridge, framePD, d, outer}>}
+   */
   function calculate() {
     const rows = [];
+    // 若输入了精确值则以精确值为准，否则使用范围
     const lMin = state.lensExact   !== null ? state.lensExact   : state.lensMin;
     const lMax = state.lensExact   !== null ? state.lensExact   : state.lensMax;
     const bMin = state.bridgeExact !== null ? state.bridgeExact : state.bridgeMin;
@@ -810,18 +1011,25 @@
     for (let lens = lMin; lens <= lMax; lens++) {
       for (let bridge = bMin; bridge <= bMax; bridge++) {
         const framePD = lens + bridge;
-        const d = (framePD - state.pd) / 2;
+        const d = (framePD - state.pd) / 2;   // 移心量
+        // 移心量为负（框架瞳距 < 用户瞳距）或超过上限，跳过
         if (d < 0 || d > state.maxDec) continue;
-        const outer = lens / 2 + d;
+        const outer = lens / 2 + d;            // 外侧边缘距
         rows.push({ lens, bridge, framePD, d, outer });
       }
     }
     return rows;
   }
 
-  // ─────────────────────────────────────────────
-  //  Sort
-  // ─────────────────────────────────────────────
+  // ═══════════════════════════════════════════════
+  //  排序
+  // ═══════════════════════════════════════════════
+  /**
+   * 对结果行按当前排序字段和方向排序
+   * 同值时以移心量升序为次要排序键
+   * @param {Array} rows
+   * @returns {Array}
+   */
   function sortRows(rows) {
     return [...rows].sort((a, b) => {
       let va, vb;
@@ -830,30 +1038,38 @@
         case 'lens':    va = a.lens;    vb = b.lens;    break;
         case 'bridge':  va = a.bridge;  vb = b.bridge;  break;
         case 'framePD': va = a.framePD; vb = b.framePD; break;
-        default:        va = a.d;       vb = b.d;
+        default:        va = a.d;       vb = b.d;        // 默认按移心量排序
       }
       if (va !== vb) return (va - vb) * state.sortDir;
-      return a.d - b.d;
+      return a.d - b.d;  // 同值时按移心量升序兜底
     });
   }
 
-  // ─────────────────────────────────────────────
-  //  Render
-  // ─────────────────────────────────────────────
+  // ═══════════════════════════════════════════════
+  //  渲染：将计算结果写入 DOM
+  // ═══════════════════════════════════════════════
+  /**
+   * 重新计算并刷新整个结果区（表格 + 计数 + 框架瞳距范围）
+   * 每次用户操作都会调用此函数，同时触发 saveState 持久化
+   */
   function render() {
-    saveState();
+    saveState();  // 每次渲染前保存状态，确保刷新后能恢复
+
     const rows  = sortRows(calculate());
     const tbody = document.getElementById('results-body');
     const empty = document.getElementById('empty-state');
     const wrap  = document.getElementById('table-wrapper');
 
+    // 更新组合总数
     document.getElementById('result-count').textContent = rows.length;
 
+    // 更新框架瞳距范围展示
     const fpds = rows.map(r => r.framePD);
     document.getElementById('frame-pd-info').innerHTML = fpds.length
       ? `<strong style="color:var(--text);font-size:15px">${Math.min(...fpds)} – ${Math.max(...fpds)}</strong>&nbsp;<span style="font-size:12px">mm（当前筛选结果）</span>`
       : '<span style="font-size:13px">—</span>';
 
+    // 无结果时显示空态，隐藏表格
     if (rows.length === 0) {
       wrap.style.display  = 'none';
       empty.style.display = 'block';
@@ -862,12 +1078,16 @@
     wrap.style.display  = 'block';
     empty.style.display = 'none';
 
+    // 找出最小移心量，用于标记最优行
     const minD = Math.min(...rows.map(r => r.d));
 
+    // 动态生成表格行 HTML
     tbody.innerHTML = rows.map((r, i) => {
-      const rt    = rating(r.d);
-      const isTop = r.d === minD;
+      const rt    = rating(r.d);               // 评级信息
+      const isTop = r.d === minD;              // 是否为最优行
+      // 进度条宽度：以 5mm 为满格，最大 100%
       const barW  = Math.min(100, (r.d / 5) * 100).toFixed(1);
+      // 最优行显示星标
       const star  = isTop ? '<span class="star-icon" title="当前最佳匹配">★</span>' : '';
       return `
         <tr class="${isTop ? 'top-row' : ''}">
@@ -891,16 +1111,22 @@
     }).join('');
   }
 
-  // ─────────────────────────────────────────────
-  //  PD controls
-  // ─────────────────────────────────────────────
+  // ═══════════════════════════════════════════════
+  //  瞳距控件
+  // ═══════════════════════════════════════════════
   const pdSlider  = document.getElementById('pd-slider');
   const pdNumber  = document.getElementById('pd-number');
   const pdDisplay = document.getElementById('pd-display');
 
+  /**
+   * 更新瞳距状态并同步所有 UI（滑块、数字框、大字显示）
+   * 输入值会被钳制到 [52, 76] 并取最近的 0.5 步进
+   * @param {string|number} raw - 原始输入值
+   */
   function setPD(raw) {
     const v = parseFloat(raw);
     if (isNaN(v)) return;
+    // 四舍五入到 0.5 步进，钳制到合法范围
     const clamped = Math.max(52, Math.min(76, Math.round(v * 2) / 2));
     state.pd = clamped;
     pdSlider.value = clamped;
@@ -909,17 +1135,22 @@
     render();
   }
 
+  // 滑块和数字框双向联动
   pdSlider.addEventListener('input', e => setPD(e.target.value));
   pdNumber.addEventListener('input', e => setPD(e.target.value));
 
-  // ─────────────────────────────────────────────
-  //  Decentration slider
-  // ─────────────────────────────────────────────
+  // ═══════════════════════════════════════════════
+  //  移心量上限滑块
+  // ═══════════════════════════════════════════════
   const decSlider = document.getElementById('dec-slider');
   const decBadge  = document.getElementById('dec-badge');
   const decHint   = document.getElementById('dec-hint');
   const decStatus = document.getElementById('dec-status');
 
+  /**
+   * 根据移心量上限值更新徽章颜色、数值文字、提示文字和评级标签
+   * @param {number} v - 移心量上限（mm）
+   */
   function updateDecBadge(v) {
     const s = decBadgeStyle(v);
     decBadge.style.background  = s.bg;
@@ -931,29 +1162,44 @@
     decStatus.style.color      = s.color;
   }
 
+  // 滑块拖动时实时更新状态和视图
   decSlider.addEventListener('input', e => {
     state.maxDec = parseFloat(e.target.value);
     updateDecBadge(state.maxDec);
     render();
   });
 
-  // ─────────────────────────────────────────────
-  //  Exact value inputs
-  // ─────────────────────────────────────────────
+  // ═══════════════════════════════════════════════
+  //  精确值输入框
+  // ═══════════════════════════════════════════════
+
+  /**
+   * 为精确值输入框绑定 input 事件
+   * - 输入合法整数：激活胶囊高亮、显示清除按钮、更新 state
+   * - 清空输入：取消激活、隐藏清除按钮、将 state 重置为 null（回退到范围筛选）
+   * @param {string}   inputId   输入框 id
+   * @param {string}   clearId   清除按钮 id
+   * @param {string}   stateKey  state 对象中对应的 key
+   * @param {number}   min       合法值下限
+   * @param {number}   max       合法值上限
+   */
   function bindExact(inputId, clearId, stateKey, min, max) {
     const input = document.getElementById(inputId);
     const clear = document.getElementById(clearId);
+    const group = input.closest('.exact-group');  // 胶囊容器
     input.addEventListener('input', e => {
       const raw = e.target.value.trim();
       if (raw === '') {
+        // 清空：重置状态，取消激活样式
         state[stateKey] = null;
-        input.classList.remove('active');
+        group.classList.remove('active');
         clear.classList.remove('visible');
       } else {
         const v = parseInt(raw);
+        // 只有合法整数才更新状态，非法输入不触发过滤
         if (!isNaN(v) && v >= min && v <= max) {
           state[stateKey] = v;
-          input.classList.add('active');
+          group.classList.add('active');
           clear.classList.add('visible');
         }
       }
@@ -961,35 +1207,45 @@
     });
   }
 
+  /**
+   * 清除精确值输入（由 × 按钮的 onclick 调用）
+   * @param {'lens'|'bridge'} which
+   */
   function clearExact(which) {
-    const inputId = which === 'lens' ? 'lens-exact' : 'bridge-exact';
-    const clearId = which === 'lens' ? 'lens-exact-clear' : 'bridge-exact-clear';
-    const key     = which === 'lens' ? 'lensExact' : 'bridgeExact';
+    const inputId = which === 'lens' ? 'lens-exact'        : 'bridge-exact';
+    const clearId = which === 'lens' ? 'lens-exact-clear'  : 'bridge-exact-clear';
+    const groupId = which === 'lens' ? 'lens-exact-group'  : 'bridge-exact-group';
+    const key     = which === 'lens' ? 'lensExact'         : 'bridgeExact';
     state[key] = null;
     document.getElementById(inputId).value = '';
-    document.getElementById(inputId).classList.remove('active');
+    document.getElementById(groupId).classList.remove('active');
     document.getElementById(clearId).classList.remove('visible');
     render();
   }
 
+  // 分别绑定镜片宽度和鼻梁间距的精确输入框
   bindExact('lens-exact',   'lens-exact-clear',   'lensExact',   35, 60);
   bindExact('bridge-exact', 'bridge-exact-clear', 'bridgeExact', 12, 25);
 
-  // ─────────────────────────────────────────────
-  //  Sort buttons
-  // ─────────────────────────────────────────────
+  // ═══════════════════════════════════════════════
+  //  排序按钮
+  // ═══════════════════════════════════════════════
   const sortBtns   = document.querySelectorAll('.sort-btn');
+  // 排序字段 key 到中文标签的映射
   const sortLabels = { d: '移心量', outer: '外侧边缘距', lens: '镜片宽度', bridge: '鼻梁间距', framePD: '框架瞳距' };
 
   sortBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const key = btn.dataset.key;
       if (state.sortKey === key) {
+        // 点击已激活的按钮：翻转排序方向
         state.sortDir *= -1;
       } else {
+        // 切换到新排序字段，默认升序
         state.sortKey = key;
         state.sortDir = 1;
       }
+      // 更新所有按钮的激活状态和文字（显示箭头方向）
       sortBtns.forEach(b => {
         b.classList.remove('active');
         b.textContent = sortLabels[b.dataset.key];
@@ -1000,15 +1256,23 @@
     });
   });
 
-  // ─────────────────────────────────────────────
-  //  Persist
-  // ─────────────────────────────────────────────
+  // ═══════════════════════════════════════════════
+  //  状态持久化（localStorage）
+  // ═══════════════════════════════════════════════
   const STORAGE_KEY = 'suitable-glasses-state';
 
+  /**
+   * 将当前 state 序列化为 JSON 存入 localStorage
+   * 在每次 render() 开头调用，确保所有操作都被自动保存
+   */
   function saveState() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
   }
 
+  /**
+   * 从 localStorage 读取并恢复之前保存的 state
+   * 只恢复已知的 key，忽略多余或不兼容的字段
+   */
   function loadState() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -1020,50 +1284,56 @@
     } catch (e) {}
   }
 
+  /**
+   * 将 state 的值同步回所有 UI 控件
+   * 在 loadState 之后调用，确保页面显示与恢复的状态一致
+   */
   function syncUI() {
-    // PD
+    // 同步瞳距滑块、数字框和大字显示
     pdSlider.value = state.pd;
     pdNumber.value = state.pd;
     pdDisplay.innerHTML = `${state.pd.toFixed(1)} <span>mm</span>`;
 
-    // Decentration
+    // 同步移心量滑块及徽章
     decSlider.value = state.maxDec;
     updateDecBadge(state.maxDec);
 
-    // Wheel pickers (created fresh each time syncUI is called)
+    // 清空波轮容器并重新初始化（防止 restore 时产生重复 DOM）
     document.getElementById('wheel-lens-min').innerHTML   = '';
     document.getElementById('wheel-lens-max').innerHTML   = '';
     document.getElementById('wheel-bridge-min').innerHTML = '';
     document.getElementById('wheel-bridge-max').innerHTML = '';
     initWheels();
 
-    // Exact inputs
+    // 同步精确值输入框的显示状态
     const lensExactEl    = document.getElementById('lens-exact');
+    const lensExactGrp   = document.getElementById('lens-exact-group');
     const lensExactClr   = document.getElementById('lens-exact-clear');
     const bridgeExactEl  = document.getElementById('bridge-exact');
+    const bridgeExactGrp = document.getElementById('bridge-exact-group');
     const bridgeExactClr = document.getElementById('bridge-exact-clear');
 
     if (state.lensExact !== null) {
       lensExactEl.value = state.lensExact;
-      lensExactEl.classList.add('active');
+      lensExactGrp.classList.add('active');
       lensExactClr.classList.add('visible');
     } else {
       lensExactEl.value = '';
-      lensExactEl.classList.remove('active');
+      lensExactGrp.classList.remove('active');
       lensExactClr.classList.remove('visible');
     }
 
     if (state.bridgeExact !== null) {
       bridgeExactEl.value = state.bridgeExact;
-      bridgeExactEl.classList.add('active');
+      bridgeExactGrp.classList.add('active');
       bridgeExactClr.classList.add('visible');
     } else {
       bridgeExactEl.value = '';
-      bridgeExactEl.classList.remove('active');
+      bridgeExactGrp.classList.remove('active');
       bridgeExactClr.classList.remove('visible');
     }
 
-    // Sort buttons
+    // 同步排序按钮的激活状态和文字
     sortBtns.forEach(b => {
       b.classList.remove('active');
       b.textContent = sortLabels[b.dataset.key];
@@ -1075,12 +1345,13 @@
     }
   }
 
-  // ─────────────────────────────────────────────
-  //  Init
-  // ─────────────────────────────────────────────
-  loadState();
-  syncUI();
-  render();
+  // ═══════════════════════════════════════════════
+  //  页面初始化入口
+  //  执行顺序：读取存储 → 同步 UI → 首次渲染
+  // ═══════════════════════════════════════════════
+  loadState();  // 从 localStorage 恢复上次的筛选状态
+  syncUI();     // 将 state 反映到所有输入控件
+  render();     // 计算并渲染结果表格
 </script>
 </body>
 </html>
